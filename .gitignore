@@ -1,0 +1,84 @@
+# Node
+node_modules/
+
+# Build outputs
+dist/
+build/
+out/
+public/build/
+
+# Vite
+.vite/
+
+# Next / Nuxt / other framework outputs
+.next/
+.nuxt/
+.storybook/
+storybook-static/
+
+# Common caches
+.cache/
+.parcel-cache/
+.sass-cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# Bundler caches
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+*.log
+
+# Runtime files
+*.pid
+*.seed
+*.pid.lock
+
+# Environment files (keep example files like .env.example)
+.env
+.env.*.local
+.env.local
+.env.production.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE / Editor
+.vscode/
+.idea/
+*.iml
+*.sublime-workspace
+*.sublime-project
+
+# Editor swap / backup files
+*~
+*.swp
+.*.swp
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Serverless
+.serverless/
+
+# Storybook / testing artifacts
+cypress/videos/
+cypress/screenshots/
+
+# Misc
+dist-*/

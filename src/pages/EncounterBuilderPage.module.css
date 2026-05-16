@@ -1,0 +1,472 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 3.5rem - 3rem);
+}
+
+.header {
+  margin-bottom: 1rem;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 1rem;
+}
+
+.leftPanel {
+  width: 360px;
+  min-width: 360px;
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.panelTitle {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.monsterCount {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.monsterTable {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.tableHeader {
+  display: flex;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.375rem;
+  margin-bottom: 0.25rem;
+}
+
+.tableHeader button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-align: left;
+  padding: 0;
+}
+
+.tableHeader button:hover {
+  color: var(--accent);
+}
+
+.colName { flex: 1; min-width: 0; }
+.colType { width: 90px; }
+.colCr { width: 50px; text-align: center; }
+.colAdd { width: 36px; text-align: center; }
+
+.monsterRow {
+  display: flex;
+  align-items: center;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.monsterRow:hover {
+  background: var(--accent-light);
+}
+
+.crTag {
+  display: inline-block;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 0.75rem;
+}
+
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--success);
+  border-radius: 50%;
+  background: none;
+  color: var(--success);
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: bold;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.addBtn:hover {
+  background: var(--success);
+  color: #fff;
+}
+
+.rightPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  gap: 1rem;
+}
+
+.partySetup {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+}
+
+.partyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+
+.diffBadge {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.partyBody {
+  margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.partyRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+}
+
+.partyRow input[type="number"] {
+  width: 50px;
+  text-align: center;
+}
+
+.playerLevels {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.lvlInput {
+  width: 42px;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+.diffDisplay {
+  margin-top: 0.375rem;
+}
+
+.diffBar {
+  display: flex;
+  gap: 4px;
+}
+
+.diffSegment {
+  flex: 1;
+  text-align: center;
+  padding: 4px 2px;
+  border-radius: 3px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.diffEasy { background: #22c55e; }
+.diffMedium { background: #eab308; color: #333; }
+.diffHard { background: #f97316; }
+.diffDeadly { background: #ef4444; }
+.diffInactive { background: var(--bg-secondary); color: var(--text-muted); }
+
+.diffDetail {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.375rem;
+}
+
+.encounterHeader {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.encounterHeader input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.btnPrimary {
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+
+.btnPrimary:hover {
+  background: var(--accent-hover);
+}
+
+.btnSecondary {
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btnSecondary:hover {
+  background: var(--border);
+}
+
+.btnDanger {
+  padding: 0.25rem 0.5rem;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.btnDanger:hover {
+  background: var(--danger-hover);
+}
+
+.encounterList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.emptyState {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem;
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+.encounterRow {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.qtyControls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.qtyControls button {
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  background: none;
+  cursor: pointer;
+  font-size: 1rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qtyControls button:hover {
+  background: var(--bg-secondary);
+}
+
+.qtyControls span {
+  min-width: 20px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 0.875rem;
+}
+
+.monsterInfo {
+  flex: 1;
+}
+
+.monsterName {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.monsterStats {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.removeBtn {
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  padding: 4px;
+}
+
+.removeBtn:hover {
+  color: var(--danger-hover);
+}
+
+.savedSection {
+  margin-top: 1rem;
+}
+
+.savedSection h4 {
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-muted);
+}
+
+.savedRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.375rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.25rem;
+  font-size: 0.85rem;
+}
+
+.savedRow small {
+  color: var(--text-muted);
+}
+
+.savedRow div {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.savedRow .btnPrimary,
+.savedRow .btnDanger {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+}
+
+/* Stat block modal styles */
+.statBlock {
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.monsterImage {
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.monsterImage img {
+  max-width: 180px;
+  border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
+}
+
+.statFields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.sectionTitle {
+  font-size: 1rem;
+  margin: 1rem 0 0.5rem;
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.abilityScores {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.ability {
+  text-align: center;
+  background: var(--bg-secondary);
+  border-radius: var(--radius);
+  padding: 0.375rem 0.5rem;
+  flex: 1;
+}
+
+.abilityAbbr {
+  font-weight: bold;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.abilityScore {
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.abilityMod {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.entry {
+  margin-bottom: 0.5rem;
+}
+
+@media (max-width: 800px) {
+  .body {
+    flex-direction: column;
+  }
+
+  .leftPanel {
+    width: 100%;
+    min-width: 0;
+    max-height: 40vh;
+  }
+
+  .page {
+    height: auto;
+  }
+}

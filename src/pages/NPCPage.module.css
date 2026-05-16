@@ -1,0 +1,154 @@
+.page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.page h1 {
+  margin-bottom: 1.5rem;
+}
+
+.createSection {
+  margin-bottom: 1.5rem;
+}
+
+.createSection h3 {
+  margin-bottom: 0.75rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.field textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.btn {
+  align-self: flex-start;
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background 0.15s;
+}
+
+.btn:hover {
+  background: var(--accent-hover);
+}
+
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+}
+
+.refreshBtn {
+  margin-left: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.refreshBtn:hover {
+  background: var(--bg-secondary);
+}
+
+.empty {
+  color: var(--text-muted);
+  padding: 1rem 0;
+  font-size: 0.875rem;
+}
+
+.locationGroup {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 0.75rem;
+  overflow: hidden;
+}
+
+.locationHeader {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: inherit;
+}
+
+.locationHeader h4 {
+  font-size: 0.9375rem;
+}
+
+.arrow {
+  transition: transform 0.2s;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.arrowExpanded {
+  transform: rotate(180deg);
+}
+
+.npcCard {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.npcCard:hover {
+  background: var(--bg-secondary);
+}
+
+.npcHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.25rem;
+}
+
+.npcHeader h4 {
+  font-size: 0.9375rem;
+}
+
+.npcCard p {
+  font-size: 0.8125rem;
+  margin-bottom: 0.25rem;
+}
+
+.npcDetails {
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+}
+
+.npcDetails small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
