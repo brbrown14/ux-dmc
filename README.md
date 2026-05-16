@@ -108,3 +108,16 @@ E2E tests are in `e2e/specs/` using Playwright.
 ## Spec
 
 See [spec.md](./spec.md) for the full specification and [implementation_plan.md](./implementation_plan.md) for the implementation plan.
+
+### E2E Tests
+
+```bash
+npx playwright install    # first time only
+npm run test:e2e
+```
+
+E2E tests are in `e2e/specs/` using Playwright.
+
+## Spec
+
+See [spec.md](./spec.md) for the full specification and [implementation_plan.md](./implementation_plan.md) for the implementation plan.
