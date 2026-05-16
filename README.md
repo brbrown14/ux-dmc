@@ -95,6 +95,7 @@ npm run test
 
 Tests co-located with source files (`*.test.ts`, `*.test.tsx`).
 
+back end hosted in docker at ghcr.io/brbrown14/dungeon-masters-companion:latest
 ### E2E Tests
 
 ```bash
