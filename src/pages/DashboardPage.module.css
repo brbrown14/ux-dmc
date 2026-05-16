@@ -1,0 +1,62 @@
+.page {
+  text-align: center;
+  padding-top: 2rem;
+}
+
+.heading {
+  margin-bottom: 2rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.25rem;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem 1.5rem;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--card-shadow);
+}
+
+.card h3 {
+  color: var(--accent);
+  font-size: 1.125rem;
+}
+
+.card p {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.logoutForm {
+  margin-top: 2.5rem;
+}
+
+.logout {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.875rem;
+  text-decoration: underline;
+}
+
+.logout:hover {
+  color: var(--text);
+}
