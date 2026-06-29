@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../../contexts/useAuth'
 import { ThemeToggle } from './ThemeToggle'
 import styles from './NavBar.module.css'
 
@@ -12,7 +13,14 @@ const links = [
 ]
 
 export function NavBar() {
+  const navigate = useNavigate()
+  const { logout } = useAuth()
   const [menuOpen, setMenuOpen] = useState(false)
+
+  async function handleLogout() {
+    await logout()
+    navigate('/login')
+  }
 
   return (
     <nav className={styles.nav}>
@@ -47,6 +55,7 @@ export function NavBar() {
             </NavLink>
           ))}
           <ThemeToggle />
+          <button className={styles.link} onClick={handleLogout}>Log Out</button>
         </div>
       </div>
     </nav>
