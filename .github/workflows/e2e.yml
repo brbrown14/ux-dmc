@@ -1,0 +1,163 @@
+name: E2E Tests
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
+        with:
+          repository: brbrown14/dungeon-masters-companion
+          path: backend
+          # GITHUB_TOKEN works for public repos under the same org/user.
+          # If the backend repo is private, set a PAT as GHCR_PAT.
+          token: ${{ secrets.GHCR_PAT || github.token }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build backend Docker image
+        run: docker build -t ghcr.io/brbrown14/dungeon-masters-companion:latest .
+        working-directory: backend
+
+      - name: Build and start services
+        run: docker compose up -d --build
+
+      - name: Wait for frontend to be ready
+        run: |
+          for i in $(seq 1 30); do
+            if curl -s http://localhost:46119 >/dev/null 2>&1; then
+              echo "Frontend ready"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "=== Frontend logs ===" && docker compose logs frontend
+          echo "=== Backend logs ===" && docker compose logs backend
+          echo "=== DB logs ===" && docker compose logs postgres
+          exit 1
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium
+
+      - name: Run E2E tests
+        id: tests
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+      - name: Dump container logs on failure
+        if: failure()
+        run: docker compose logs
+
+      - name: Post results to PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs')
+            let summary = ''
+
+            try {
+              const report = JSON.parse(fs.readFileSync('results.json', 'utf8'))
+              const suites = report.suites || []
+              let passed = 0
+              let failed = 0
+              let skipped = 0
+
+              function walk(specs) {
+                for (const s of specs) {
+                  if (s.specs) {
+                    for (const spec of s.specs) {
+                      const ok = spec.ok || spec.tests?.every(t => t.expected === t.actual)
+                      if (spec.tests?.[0]?.expected === 'skipped') {
+                        skipped++
+                      } else if (ok) {
+                        passed++
+                      } else {
+                        failed++
+                      }
+                    }
+                  }
+                  if (s.suites) walk(s.suites)
+                }
+              }
+              walk(suites)
+
+              const total = passed + failed + skipped
+              const icon = failed === 0 ? ':green_circle:' : ':red_circle:'
+              summary = `${icon} **E2E Test Results** — ${total} total, ${passed} passed, ${failed} failed, ${skipped} skipped`
+
+              if (failed > 0) {
+                summary += '\n\n**Failed tests:**\n'
+                function walkFailed(specs) {
+                  for (const s of specs) {
+                    if (s.specs) {
+                      for (const spec of s.specs) {
+                        const ok = spec.ok || spec.tests?.every(t => t.expected === t.actual)
+                        if (!ok && spec.tests?.[0]?.expected !== 'skipped') {
+                          const file = spec.file || spec.title
+                          const err = spec.tests?.[0]?.errors?.[0]?.message || 'unknown error'
+                          summary += `- \`${file}\`: ${err.split('\n')[0]}\n`
+                        }
+                      }
+                    }
+                    if (s.suites) walkFailed(s.suites)
+                  }
+                }
+                walkFailed(suites)
+              }
+
+              const link = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+              summary += `\n\n[View full report](${link})`
+            } catch {
+              summary = ':warning: Could not parse Playwright results'
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            })
+
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body?.includes('E2E Test Results')
+            )
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body: summary,
+              })
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: summary,
+              })
+            }

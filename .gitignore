@@ -80,5 +80,10 @@ docker-compose.override.yml
 cypress/videos/
 cypress/screenshots/
 
+# Playwright
+/test-results/
+/playwright-report/
+e2e/.auth/
+
 # Misc
 dist-*/
