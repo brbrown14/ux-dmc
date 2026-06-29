@@ -43,13 +43,13 @@ export default function MapsPage() {
   }, [])
 
   async function handleUpload() {
-    if (!uploadFile || !uploadTitle.trim() || !uploadDesc.trim()) {
-      setToast({ message: 'Title, description, and image are required', type: 'error' })
+    if (!uploadTitle.trim() || !uploadDesc.trim()) {
+      setToast({ message: 'Title and description are required', type: 'error' })
       return
     }
     try {
       const fd = new FormData()
-      fd.append('image', uploadFile)
+      if (uploadFile) fd.append('image', uploadFile)
       fd.append('title', uploadTitle)
       fd.append('description', uploadDesc)
       await uploadMap(fd)
@@ -118,12 +118,16 @@ export default function MapsPage() {
         <div className={styles.gallery}>
           {maps.map((map) => (
             <div key={map.id} className={styles.card} onClick={() => openDetail(map)}>
-              <img
-                src={getMapImageUrl(map.imagePath)}
-                alt={map.title}
-                loading="lazy"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
-              />
+              {map.imagePath ? (
+                <img
+                  src={getMapImageUrl(map.imagePath)}
+                  alt={map.title}
+                  loading="lazy"
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = 'none' }}
+                />
+              ) : (
+                <div className={styles.placeholder}>No image</div>
+              )}
               <div className={styles.cardBody}>
                 <h3>{map.title}</h3>
                 <p>{map.description}</p>
@@ -158,7 +162,11 @@ export default function MapsPage() {
 
             {activeTab === 'details' && (
               <div className={styles.detailContent}>
-                <img src={getMapImageUrl(detailMap.imagePath)} alt={detailMap.title} className={styles.detailImage} />
+                {detailMap.imagePath ? (
+                  <img src={getMapImageUrl(detailMap.imagePath)} alt={detailMap.title} className={styles.detailImage} />
+                ) : (
+                  <div className={styles.placeholder}>No image</div>
+                )}
                 <div className={styles.editFields}>
                   <label>Title:</label>
                   <input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
