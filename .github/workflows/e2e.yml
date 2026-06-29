@@ -18,6 +18,7 @@ jobs:
         with:
           repository: brbrown14/dungeon-masters-companion
           path: backend
+          token: ${{ secrets.GHCR_PAT }}
           # Uses the auto-provided token — this works because both
           # repos are under the same GitHub user (brbrown14).
           # If it fails, set a PAT as GHCR_PAT and uncomment:
