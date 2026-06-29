@@ -52,8 +52,11 @@ jobs:
           echo "=== DB logs ===" && docker compose logs postgres
           exit 1
 
+      - name: Ensure auth directory exists
+        run: mkdir -p e2e/.auth
+
       - name: Install Playwright browsers
-        run: npx playwright install chromium
+        run: npx playwright install chromium firefox webkit
 
       - name: Run E2E tests
         id: tests

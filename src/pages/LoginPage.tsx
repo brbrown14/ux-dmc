@@ -1,15 +1,19 @@
-import { useState, type FormEvent } from 'react'
+import { useState, useEffect, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/useAuth'
 import styles from './LoginPage.module.css'
 
 export default function LoginPage() {
   const navigate = useNavigate()
-  const { login } = useAuth()
+  const { login, isAuthenticated } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (isAuthenticated) navigate('/')
+  }, [isAuthenticated, navigate])
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
@@ -18,7 +22,6 @@ export default function LoginPage() {
 
     try {
       await login(username, password)
-      navigate('/')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Unable to connect')
     } finally {
