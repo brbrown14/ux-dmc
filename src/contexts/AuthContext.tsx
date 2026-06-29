@@ -15,20 +15,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false
-    fetch('/api/monsters', {
-      credentials: 'same-origin',
-      redirect: 'manual',
-      signal: AbortSignal.timeout(5000),
-    })
-      .then((res) => {
-        if (!cancelled) setIsAuthenticated(res.ok)
-      })
-      .catch(() => {
-        if (!cancelled) setIsAuthenticated(false)
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false)
-      })
+
+    async function checkAuth() {
+      for (let attempt = 0; attempt < 5; attempt++) {
+        if (cancelled) return
+        try {
+          const res = await fetch('/api/monsters', {
+            credentials: 'same-origin',
+            redirect: 'manual',
+            signal: AbortSignal.timeout(5000),
+          })
+          if (!cancelled) {
+            if (res.ok) {
+              setIsAuthenticated(true)
+              setIsLoading(false)
+              return
+            }
+            if (attempt < 4) {
+              await new Promise((r) => setTimeout(r, 2000))
+              continue
+            }
+          }
+        } catch {
+          if (attempt < 4) {
+            await new Promise((r) => setTimeout(r, 2000))
+            continue
+          }
+        }
+      }
+      if (!cancelled) setIsLoading(false)
+    }
+
+    checkAuth()
     return () => { cancelled = true }
   }, [])
 
@@ -38,10 +56,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: params,
-      redirect: 'manual',
+      redirect: 'follow',
       credentials: 'same-origin',
     })
-    if (res.ok || res.type === 'opaqueredirect') {
+    if (res.ok) {
       setIsAuthenticated(true)
     } else {
       throw new Error('Invalid credentials')
