@@ -18,11 +18,18 @@ jobs:
         with:
           repository: brbrown14/dungeon-masters-companion
           path: backend
-          token: ${{ secrets.GHCR_PAT }}
-          # Uses the auto-provided token — this works because both
-          # repos are under the same GitHub user (brbrown14).
-          # If it fails, set a PAT as GHCR_PAT and uncomment:
-          # token: ${{ secrets.GHCR_PAT }}
+          # GITHUB_TOKEN works for public repos under the same org/user.
+          # If the backend repo is private, set a PAT as GHCR_PAT.
+          token: ${{ secrets.GHCR_PAT || github.token }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build backend Docker image
         run: docker build -t ghcr.io/brbrown14/dungeon-masters-companion:latest .
@@ -123,7 +130,7 @@ jobs:
                 walkFailed(suites)
               }
 
-              const link = `${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}`
+              const link = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
               summary += `\n\n[View full report](${link})`
             } catch {
               summary = ':warning: Could not parse Playwright results'
