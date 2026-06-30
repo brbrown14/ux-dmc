@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
-import { MapsPage } from '../pages/MapsPage'
-import { NPCPage } from '../pages/NPCPage'
+import { MapsPage } from '../../pages/MapsPage'
+import { NPCPage } from '../../pages/NPCPage'
 
 test.describe('AddLocationNpc', () => {
   test('create a location on maps page then assign it to an npc', async ({ page }) => {
