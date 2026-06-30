@@ -45,6 +45,72 @@
   margin-bottom: 0.5rem;
 }
 
+.crRangeSlider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.crRangeLabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  min-width: 2rem;
+  text-align: center;
+}
+
+.rangeTrack {
+  position: relative;
+  flex: 1;
+  height: 1.25rem;
+}
+
+.rangeInput {
+  position: absolute;
+  left: 0;
+  top: 0.25rem;
+  width: 100%;
+  height: 0.5rem;
+  margin: 0;
+  padding: 0;
+  background: none;
+  pointer-events: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.rangeInput::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  pointer-events: auto;
+  border: 2px solid var(--card-bg);
+}
+
+.rangeInput::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  pointer-events: auto;
+  border: 2px solid var(--card-bg);
+}
+
+.rangeTrack::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.25rem;
+  width: 100%;
+  height: 0.5rem;
+  background: var(--bg-secondary);
+  border-radius: 3px;
+}
+
 .monsterTable {
   flex: 1;
   overflow-y: auto;
@@ -169,7 +235,7 @@
 }
 
 .partyRow input[type="number"] {
-  width: 50px;
+  width: 140px;
   text-align: center;
 }
 
@@ -180,7 +246,7 @@
 }
 
 .lvlInput {
-  width: 42px;
+  width: 80px;
   text-align: center;
   font-size: 0.8rem;
 }

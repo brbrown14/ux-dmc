@@ -34,6 +34,8 @@ export default function EncounterBuilderPage() {
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [crFilter, setCrFilter] = useState('')
+  const [crRangeMin, setCrRangeMin] = useState(0)
+  const [crRangeMax, setCrRangeMax] = useState(30)
   const [sortField, setSortField] = useState<'name' | 'type' | 'cr'>('name')
   const [sortAsc, setSortAsc] = useState(true)
 
@@ -76,6 +78,13 @@ export default function EncounterBuilderPage() {
     return parseInt(cr) || 0
   }
 
+  function formatCr(val: number): string {
+    if (val === 0.125) return '1/8'
+    if (val === 0.25) return '1/4'
+    if (val === 0.5) return '1/2'
+    return String(Math.round(val))
+  }
+
   const types = [...new Set(allMonsters.map((m) => m.type).filter(Boolean))].sort()
   const crs = [...new Set(allMonsters.map((m) => m.challengeRating).filter(Boolean))].sort((a, b) => crSortVal(a) - crSortVal(b))
 
@@ -84,6 +93,10 @@ export default function EncounterBuilderPage() {
     if (search) filtered = filtered.filter((m) => m.name.toLowerCase().includes(search.toLowerCase()))
     if (typeFilter) filtered = filtered.filter((m) => m.type === typeFilter)
     if (crFilter) filtered = filtered.filter((m) => m.challengeRating === crFilter)
+    filtered = filtered.filter((m) => {
+      const val = crSortVal(m.challengeRating)
+      return val >= crRangeMin && val <= crRangeMax
+    })
     filtered.sort((a, b) => {
       let va: string | number, vb: string | number
       if (sortField === 'name') { va = a.name.toLowerCase(); vb = b.name.toLowerCase() }
@@ -225,6 +238,14 @@ export default function EncounterBuilderPage() {
               <option value="">All CR</option>
               {crs.map((cr) => <option key={cr} value={cr}>{cr}</option>)}
             </select>
+            <div className={styles.crRangeSlider}>
+              <span className={styles.crRangeLabel}>{formatCr(crRangeMin)}</span>
+              <div className={styles.rangeTrack}>
+                <input type="range" min={0} max={30} step={0.125} value={crRangeMin} onChange={(e) => setCrRangeMin(Math.min(parseFloat(e.target.value), crRangeMax))} className={styles.rangeInput} />
+                <input type="range" min={0} max={30} step={0.125} value={crRangeMax} onChange={(e) => setCrRangeMax(Math.max(parseFloat(e.target.value), crRangeMin))} className={styles.rangeInput} />
+              </div>
+              <span className={styles.crRangeLabel}>{formatCr(crRangeMax)}</span>
+            </div>
           </div>
           <div className={styles.monsterCount}>{getFiltered().length} monsters</div>
           <div className={styles.monsterTable}>
