@@ -56,7 +56,7 @@ jobs:
         run: mkdir -p e2e/.auth
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium firefox webkit
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Run E2E tests
         id: tests
