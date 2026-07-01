@@ -75,6 +75,47 @@
   background: var(--bg-secondary);
 }
 
+.buttonRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btnSecondary {
+  padding: 0.5rem 1rem;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--text);
+}
+
+.btnSecondary:hover {
+  background: var(--bg-secondary);
+}
+
+.btnDanger {
+  padding: 0.5rem 1rem;
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  transition: background 0.15s;
+}
+
+.btnDanger:hover {
+  background: #a93226;
+}
+
+.npcActions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
 .empty {
   color: var(--text-muted);
   padding: 1rem 0;
