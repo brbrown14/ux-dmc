@@ -24,6 +24,6 @@ test.describe('AddLocationNpc', () => {
     await npc.personalityInput.fill('chill af')
     await npc.createButton.click()
 
-    await expect(page.getByText('Joe Dude')).toBeVisible()
+    await expect(page.getByText('Joe Dude').first()).toBeVisible()
   })
 })

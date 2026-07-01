@@ -56,7 +56,7 @@ jobs:
         run: mkdir -p e2e/.auth
 
       - name: Install Playwright browsers
-        run: npx playwright install chromium firefox webkit
+        run: npx playwright install --with-deps chromium firefox webkit
 
       - name: Run E2E tests
         id: tests
@@ -85,52 +85,39 @@ jobs:
 
             try {
               const report = JSON.parse(fs.readFileSync('results.json', 'utf8'))
-              const suites = report.suites || []
-              let passed = 0
-              let failed = 0
-              let skipped = 0
+              const stats = report.stats || {}
 
-              function walk(specs) {
-                for (const s of specs) {
-                  if (s.specs) {
-                    for (const spec of s.specs) {
-                      const ok = spec.ok || spec.tests?.every(t => t.expected === t.actual)
-                      if (spec.tests?.[0]?.expected === 'skipped') {
-                        skipped++
-                      } else if (ok) {
-                        passed++
-                      } else {
-                        failed++
-                      }
-                    }
-                  }
-                  if (s.suites) walk(s.suites)
-                }
-              }
-              walk(suites)
+              const expected = stats.expected || 0
+              const unexpected = stats.unexpected || 0
+              const flaky = stats.flaky || 0
+              const skipped = stats.skipped || 0
+              const total = expected + unexpected + flaky + skipped
+              const failedCount = unexpected + flaky
 
-              const total = passed + failed + skipped
-              const icon = failed === 0 ? ':green_circle:' : ':red_circle:'
-              summary = `${icon} **E2E Test Results** — ${total} total, ${passed} passed, ${failed} failed, ${skipped} skipped`
+              const icon = failedCount === 0 ? ':green_circle:' : ':red_circle:'
+              summary = `${icon} **E2E Test Results** — ${total} total, ${expected} passed, ${failedCount} failed${flaky > 0 ? ` (${flaky} flaky)` : ''}, ${skipped} skipped`
 
-              if (failed > 0) {
+              if (unexpected > 0 || flaky > 0) {
                 summary += '\n\n**Failed tests:**\n'
-                function walkFailed(specs) {
-                  for (const s of specs) {
+                function walkSuites(suites) {
+                  for (const s of suites) {
                     if (s.specs) {
                       for (const spec of s.specs) {
-                        const ok = spec.ok || spec.tests?.every(t => t.expected === t.actual)
-                        if (!ok && spec.tests?.[0]?.expected !== 'skipped') {
-                          const file = spec.file || spec.title
-                          const err = spec.tests?.[0]?.errors?.[0]?.message || 'unknown error'
-                          summary += `- \`${file}\`: ${err.split('\n')[0]}\n`
+                        if (!spec.ok && spec.tests) {
+                          for (const test of spec.tests) {
+                            if (test.status === 'unexpected' || test.status === 'flaky') {
+                              const name = `${spec.title} [${test.projectName}]`
+                              const err = test.results?.[0]?.errors?.[0]?.message || 'unknown error'
+                              summary += `- \`${name}\`: ${err.split('\n')[0]}\n`
+                            }
+                          }
                         }
                       }
                     }
-                    if (s.suites) walkFailed(s.suites)
+                    if (s.suites) walkSuites(s.suites)
                   }
                 }
-                walkFailed(suites)
+                walkSuites(report.suites || [])
               }
 
               const link = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`

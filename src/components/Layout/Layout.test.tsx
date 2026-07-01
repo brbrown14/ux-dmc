@@ -1,7 +1,11 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { Layout } from './Layout'
+
+vi.mock('../../contexts/useAuth', () => ({
+  useAuth: () => ({ logout: vi.fn() }),
+}))
 
 describe('Layout', () => {
   it('renders navigation bar', () => {

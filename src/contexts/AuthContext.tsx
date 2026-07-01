@@ -33,13 +33,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
             if (attempt < 4) {
               await new Promise((r) => setTimeout(r, 2000))
-              continue
             }
           }
         } catch {
           if (attempt < 4) {
             await new Promise((r) => setTimeout(r, 2000))
-            continue
           }
         }
       }
@@ -62,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (res.ok) {
       setIsAuthenticated(true)
     } else {
+      setIsAuthenticated(false)
       throw new Error('Invalid credentials')
     }
   }, [])
@@ -69,6 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     try {
       await fetch('/logout', { method: 'POST', credentials: 'same-origin' })
+    } catch {
+      // network errors are ignored; user is logged out regardless
     } finally {
       setIsAuthenticated(false)
     }
