@@ -1,15 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { fetchNPCs, createNPC, fetchNPCsByMap } from './npcs'
+import { fetchNPCs, createNPC, updateNPC, deleteNPC, fetchNPCsByMap } from './npcs'
 
 vi.mock('./client', () => ({
   get: vi.fn(),
   post: vi.fn(),
+  put: vi.fn(),
+  del: vi.fn(),
 }))
 
-import { get, post } from './client'
+import { get, post, put, del } from './client'
 
 const mockGet = vi.mocked(get)
 const mockPost = vi.mocked(post)
+const mockPut = vi.mocked(put)
+const mockDel = vi.mocked(del)
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -32,6 +36,24 @@ describe('createNPC', () => {
     expect(mockPost).toHaveBeenCalledWith('/api/npcs', npcData)
     expect(result.name).toBe('Bob')
     expect(result.ownerUsername).toBe('user')
+  })
+})
+
+describe('updateNPC', () => {
+  it('puts npc data to /api/npcs/:id', async () => {
+    const npcData = { name: 'Updated', location: 'Cave', occupation: 'Guard', history: '', personality: '', worldMapId: null }
+    mockPut.mockResolvedValue({ id: 3, ...npcData, ownerUsername: 'user' })
+    const result = await updateNPC(3, npcData)
+    expect(mockPut).toHaveBeenCalledWith('/api/npcs/3', npcData)
+    expect(result.name).toBe('Updated')
+  })
+})
+
+describe('deleteNPC', () => {
+  it('calls del with /api/npcs/:id', async () => {
+    mockDel.mockResolvedValue(undefined)
+    await deleteNPC(5)
+    expect(mockDel).toHaveBeenCalledWith('/api/npcs/5')
   })
 })
 

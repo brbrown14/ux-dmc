@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { fetchNPCs, createNPC } from '../api/npcs'
+import { fetchNPCs, createNPC, updateNPC, deleteNPC } from '../api/npcs'
 import { fetchMaps } from '../api/maps'
 import { LoadingSpinner } from '../components/shared/LoadingSpinner'
 import { Toast } from '../components/shared/Toast'
@@ -19,16 +19,20 @@ export default function NPCPage() {
   const [occupation, setOccupation] = useState('')
   const [history, setHistory] = useState('')
   const [personality, setPersonality] = useState('')
+  const [editingNpc, setEditingNpc] = useState<NPC | null>(null)
+
+  async function loadData() {
+    const [npcData, mapData] = await Promise.all([fetchNPCs(), fetchMaps()])
+    setNpcs(npcData)
+    setMaps(mapData)
+  }
 
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       setLoading(true)
       try {
-        const [npcData, mapData] = await Promise.all([fetchNPCs(), fetchMaps()])
-        if (cancelled) return
-        setNpcs(npcData)
-        setMaps(mapData)
+        await loadData()
       } catch {
         if (!cancelled) setToast({ message: 'Failed to load NPCs', type: 'error' })
       } finally {
@@ -38,24 +42,65 @@ export default function NPCPage() {
     return () => { cancelled = true }
   }, [])
 
-  async function handleCreate() {
+  function resetForm() {
+    setName('')
+    setLocation('Unknown')
+    setOccupation('')
+    setHistory('')
+    setPersonality('')
+    setEditingNpc(null)
+  }
+
+  function handleEdit(npc: NPC) {
+    setName(npc.name)
+    setLocation(npc.location)
+    setOccupation(npc.occupation)
+    setHistory(npc.history)
+    setPersonality(npc.personality)
+    setEditingNpc(npc)
+  }
+
+  async function handleSave() {
     if (!name.trim()) {
       setToast({ message: 'Name is required', type: 'error' })
       return
     }
     try {
-      await createNPC({ name, location, occupation, history, personality, worldMapId: null })
-      setToast({ message: 'NPC created successfully!', type: 'success' })
-      setName('')
-      setLocation('Unknown')
-      setOccupation('')
-      setHistory('')
-      setPersonality('')
-      const [npcData, mapData] = await Promise.all([fetchNPCs(), fetchMaps()])
-      setNpcs(npcData)
-      setMaps(mapData)
+      const data = { name, location, occupation, history, personality, worldMapId: null }
+      if (editingNpc) {
+        await updateNPC(editingNpc.id, data)
+        setToast({ message: 'NPC updated successfully!', type: 'success' })
+      } else {
+        await createNPC(data)
+        setToast({ message: 'NPC created successfully!', type: 'success' })
+      }
+      resetForm()
+      await loadData()
     } catch {
-      setToast({ message: 'Failed to create NPC', type: 'error' })
+      setToast({ message: editingNpc ? 'Failed to update NPC' : 'Failed to create NPC', type: 'error' })
+    }
+  }
+
+  async function handleDelete(npc: NPC) {
+    if (!globalThis.confirm(`Delete "${npc.name}"?`)) return
+    try {
+      await deleteNPC(npc.id)
+      setToast({ message: 'NPC deleted successfully!', type: 'success' })
+      if (editingNpc?.id === npc.id) resetForm()
+      await loadData()
+    } catch {
+      setToast({ message: 'Failed to delete NPC', type: 'error' })
+    }
+  }
+
+  async function handleRefresh() {
+    setLoading(true)
+    try {
+      await loadData()
+    } catch {
+      setToast({ message: 'Failed to load NPCs', type: 'error' })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -79,7 +124,7 @@ export default function NPCPage() {
       <h1>NPC Manager</h1>
 
       <section className={styles.createSection}>
-        <h3>Create New NPC</h3>
+        <h3>{editingNpc ? 'Edit NPC' : 'Create New NPC'}</h3>
         <div className={styles.form}>
           <div className={styles.field}>
             <label htmlFor="npc-name">Name:</label>
@@ -104,19 +149,26 @@ export default function NPCPage() {
             <label htmlFor="npc-personality">Personality:</label>
             <input id="npc-personality" value={personality} onChange={(e) => setPersonality(e.target.value)} placeholder="Stoic, observant..." />
           </div>
-          <button className={styles.btn} onClick={handleCreate}>Create NPC</button>
+          <div className={styles.buttonRow}>
+            <button className={styles.btn} onClick={handleSave}>
+              {editingNpc ? 'Update NPC' : 'Create NPC'}
+            </button>
+            {editingNpc && (
+              <button className={styles.btnSecondary} onClick={resetForm}>Cancel</button>
+            )}
+          </div>
         </div>
       </section>
 
       <hr className={styles.divider} />
 
       <section>
-        <h3>My NPCs <button className={styles.refreshBtn} onClick={async () => { setLoading(true); try { const [npcData, mapData] = await Promise.all([fetchNPCs(), fetchMaps()]); setNpcs(npcData); setMaps(mapData) } catch { setToast({ message: 'Failed to load NPCs', type: 'error' }) } finally { setLoading(false) } }}>Refresh List</button></h3>
+        <h3>My NPCs <button className={styles.refreshBtn} onClick={handleRefresh}>Refresh List</button></h3>
         {npcs.length === 0 ? (
           <p className={styles.empty}>No NPCs yet.</p>
         ) : (
           sortedLocations.map((loc) => (
-            <LocationGroup key={loc} location={loc} npcs={grouped[loc]} />
+            <LocationGroup key={loc} location={loc} npcs={grouped[loc]} onEdit={handleEdit} onDelete={handleDelete} />
           ))
         )}
       </section>
@@ -126,7 +178,7 @@ export default function NPCPage() {
   )
 }
 
-function LocationGroup({ location, npcs }: { location: string; npcs: NPC[] }) {
+function LocationGroup({ location, npcs, onEdit, onDelete }: { location: string; npcs: NPC[]; onEdit: (npc: NPC) => void; onDelete: (npc: NPC) => void }) {
   const [expanded, setExpanded] = useState(true)
 
   return (
@@ -135,12 +187,12 @@ function LocationGroup({ location, npcs }: { location: string; npcs: NPC[] }) {
         <h4>{location} ({npcs.length})</h4>
         <span className={`${styles.arrow} ${expanded ? styles.arrowExpanded : ''}`}>▼</span>
       </button>
-      {expanded && npcs.map((npc) => <NPCCard key={npc.id} npc={npc} />)}
+      {expanded && npcs.map((npc) => <NPCCard key={npc.id} npc={npc} onEdit={onEdit} onDelete={onDelete} />)}
     </div>
   )
 }
 
-function NPCCard({ npc }: { npc: NPC }) {
+function NPCCard({ npc, onEdit, onDelete }: { npc: NPC; onEdit: (npc: NPC) => void; onDelete: (npc: NPC) => void }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
@@ -156,6 +208,10 @@ function NPCCard({ npc }: { npc: NPC }) {
           <p><strong>Personality:</strong> {npc.personality}</p>
           <p><strong>History:</strong> {npc.history}</p>
           <small>ID: {npc.id} | Owner: {npc.ownerUsername}</small>
+          <div className={styles.npcActions}>
+            <button className={styles.btn} onClick={(e) => { e.stopPropagation(); onEdit(npc) }}>Edit</button>
+            <button className={styles.btnDanger} onClick={(e) => { e.stopPropagation(); onDelete(npc) }}>Delete</button>
+          </div>
         </div>
       )}
     </div>
