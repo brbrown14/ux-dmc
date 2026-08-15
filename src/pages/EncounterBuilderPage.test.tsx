@@ -24,7 +24,7 @@ vi.mock('../api/encounters', () => ({
 
 const sampleMonsters = [
   { id: 1, name: 'Goblin', type: 'humanoid', challengeRating: '1/4', xp: 50, armorClass: 15, hitPoints: 7, source: 'MM', size: 'Small', alignment: 'NE', strength: 8, dexterity: 14, constitution: 10, intelligence: 10, wisdom: 8, charisma: 8, skills: '', passive: 9, languages: '', traits: '', actions: '', legendaryActions: '', reactions: '', damageResistances: '', damageImmunities: '', conditionImmunities: '', senses: '', environment: '', imagePath: '', sourceJson: '', speed: '30', hitPointsFormula: '1d10+2' },
-  { id: 2, name: 'Aboleth', type: 'aberration', challengeRating: '10', xp: 5900, armorClass: 17, hitPoints: 135, source: 'MM', size: 'Large', alignment: 'LE', strength: 21, dexterity: 9, constitution: 15, intelligence: 18, wisdom: 15, charisma: 18, skills: '', passive: 12, languages: '', traits: '', actions: '', legendaryActions: '', reactions: '', damageResistances: '', damageImmunities: '', conditionImmunities: '', senses: '', environment: '', imagePath: '', sourceJson: '', speed: '10', hitPointsFormula: '18d10+36' },
+  { id: 2, name: 'Aboleth', type: 'aberration', challengeRating: '10', xp: 5900, armorClass: 17, hitPoints: 135, source: 'MM', size: 'Large', alignment: 'LE', strength: 21, dexterity: 9, constitution: 15, intelligence: 18, wisdom: 15, charisma: 18, skills: '', passive: 12, languages: '', traits: '', actions: '', legendaryActions: '', reactions: '', damageResistances: '', damageImmunities: '', conditionImmunities: '', senses: '', environment: '', imagePath: 'MM/Aboleth.png', sourceJson: '', speed: '10', hitPointsFormula: '18d10+36' },
   { id: 3, name: 'Zombie', type: 'undead', challengeRating: '1/4', xp: 50, armorClass: 8, hitPoints: 22, source: 'MM', size: 'Medium', alignment: 'NE', strength: 13, dexterity: 6, constitution: 16, intelligence: 3, wisdom: 6, charisma: 5, skills: '', passive: 8, languages: '', traits: '', actions: '', legendaryActions: '', reactions: '', damageResistances: '', damageImmunities: '', conditionImmunities: '', senses: '', environment: '', imagePath: '', sourceJson: '', speed: '20', hitPointsFormula: '3d8+9' },
   { id: 4, name: 'Dragon', type: 'dragon', challengeRating: '17', xp: 18000, armorClass: 22, hitPoints: 350, source: 'MM', size: 'Gargantuan', alignment: 'CE', strength: 27, dexterity: 10, constitution: 25, intelligence: 16, wisdom: 15, charisma: 19, skills: '["Perception","Stealth"]', passive: 22, languages: '["Common","Draconic"]', traits: '[{"name":"Amphibious","entries":["The dragon can breathe air and water."]}]', actions: '[{"name":"Bite","entries":["Melee weapon attack: +14 to hit."]}]', legendaryActions: '[{"name":"Detect","entries":["The dragon makes a Wisdom check."]}]', reactions: '[{"name":"Tail Attack","entries":["When hit, dragon makes tail attack."]}]', damageResistances: '', damageImmunities: '["Fire","Poison"]', conditionImmunities: '["Poisoned"]', senses: '{"darkvision":120}', environment: '', imagePath: '', sourceJson: '', speed: '{"walk":40,"fly":80}', hitPointsFormula: '20d12+100' },
 ]
@@ -204,6 +204,37 @@ describe('EncounterBuilderPage', () => {
     await screen.findByText('Goblin')
     fireEvent.click(screen.getByText('Goblin'))
     expect(screen.getByText(/Source/)).toBeInTheDocument()
+  })
+
+  it('shows the monster image on the right side of the info section', async () => {
+    mockFetchMonsters.mockResolvedValue(sampleMonsters)
+    mockFetchEncounters.mockResolvedValue([])
+    render(<EncounterBuilderPage />)
+    await screen.findByText('Aboleth')
+    fireEvent.click(screen.getByText('Aboleth'))
+    const img = await screen.findByAltText('Aboleth')
+    expect(img).toHaveAttribute('src', '/monster-images/MM/Aboleth.png')
+  })
+
+  it('does not render an image for a monster without an image', async () => {
+    mockFetchMonsters.mockResolvedValue(sampleMonsters)
+    mockFetchEncounters.mockResolvedValue([])
+    render(<EncounterBuilderPage />)
+    await screen.findByText('Goblin')
+    fireEvent.click(screen.getByText('Goblin'))
+    expect(screen.getByText(/Source/)).toBeInTheDocument()
+    expect(screen.queryByAltText('Goblin')).not.toBeInTheDocument()
+  })
+
+  it('hides the image if it fails to load', async () => {
+    mockFetchMonsters.mockResolvedValue(sampleMonsters)
+    mockFetchEncounters.mockResolvedValue([])
+    render(<EncounterBuilderPage />)
+    await screen.findByText('Aboleth')
+    fireEvent.click(screen.getByText('Aboleth'))
+    const img = await screen.findByAltText('Aboleth')
+    fireEvent.error(img)
+    expect(screen.queryByAltText('Aboleth')).not.toBeInTheDocument()
   })
 
   it('shows error toast on load failure', async () => {
