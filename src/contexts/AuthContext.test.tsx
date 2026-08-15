@@ -3,10 +3,11 @@ import { renderHook, act } from '@testing-library/react'
 import { AuthProvider } from './AuthContext'
 import { useAuth } from './useAuth'
 
-function setupFetchMock(status: number, ok?: boolean) {
+function setupFetchMock(status: number, ok?: boolean, body: { authenticated: boolean } = { authenticated: true }) {
   return vi.fn().mockResolvedValue({
     ok: ok ?? (status >= 200 && status < 300),
     status,
+    json: vi.fn().mockResolvedValue(body),
   })
 }
 
@@ -23,15 +24,16 @@ describe('AuthProvider', () => {
     expect(result.current.isAuthenticated).toBe(false)
     await vi.waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.isAuthenticated).toBe(true)
-    expect(fetch).toHaveBeenCalledWith('/api/monsters', expect.objectContaining({ credentials: 'same-origin' }))
+    expect(fetch).toHaveBeenCalledWith('/api/auth/status', expect.objectContaining({ credentials: 'same-origin' }))
   })
 
-  it('sets authenticated to false after failed auth check', async () => {
-    globalThis.fetch = setupFetchMock(401, false)
+  it('sets authenticated to false when not logged in', async () => {
+    globalThis.fetch = setupFetchMock(200, true, { authenticated: false })
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
-    await vi.waitFor(() => expect(result.current.isLoading).toBe(false), { timeout: 30000, interval: 100 })
+    await vi.waitFor(() => expect(result.current.isLoading).toBe(false))
     expect(result.current.isAuthenticated).toBe(false)
-  }, 35000)
+    expect(fetch).toHaveBeenCalledTimes(1)
+  })
 
   it('login sets authenticated to true on success', async () => {
     globalThis.fetch = setupFetchMock(200)
