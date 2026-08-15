@@ -22,6 +22,7 @@ describe('NavBar', () => {
     expect(screen.getByText('Encounters')).toBeInTheDocument()
     expect(screen.getByText('Maps')).toBeInTheDocument()
     expect(screen.getByText('Story')).toBeInTheDocument()
+    expect(screen.getByText('Magic Items')).toBeInTheDocument()
   })
 
   it('renders logout button', () => {

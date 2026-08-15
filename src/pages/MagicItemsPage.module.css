@@ -1,0 +1,526 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 3.5rem - 3rem);
+}
+
+.heading {
+  margin-bottom: 1rem;
+}
+
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 1rem;
+}
+
+.leftPanel {
+  width: 520px;
+  min-width: 520px;
+  display: flex;
+  flex-direction: column;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.search {
+  width: 100%;
+}
+
+.count {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.table {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.tableHeader {
+  display: flex;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0.375rem;
+  margin-bottom: 0.25rem;
+}
+
+.sortable {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-align: left;
+  padding: 0;
+}
+
+.sortable:hover {
+  color: var(--accent);
+}
+
+.colCheck {
+  width: 28px;
+  min-width: 28px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.colName {
+  flex: 1;
+  min-width: 0;
+}
+
+.colRarity {
+  width: 110px;
+}
+
+.colType {
+  width: 170px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  padding: 0.375rem 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.itemRow:hover {
+  background: var(--accent-light);
+}
+
+.itemRow .colName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rarityBadge {
+  display: inline-block;
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+.rarityCommon { background: #9ca3af; }
+.rarityUncommon { background: #22c55e; }
+.rarityRare { background: #3b82f6; }
+.rarityVeryRare { background: #8b5cf6; }
+.rarityLegendary { background: #f59e0b; color: #333; }
+.rarityArtifact { background: #ef4444; }
+.rarityVaries { background: #14b8a6; }
+.rarityUnknown { background: #6b7280; }
+.rarityNone { background: var(--bg-secondary); color: var(--text-muted); border: 1px solid var(--border); }
+
+.typeBadge {
+  display: inline-block;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.customBadge {
+  display: inline-block;
+  background: var(--accent-light);
+  color: var(--accent);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-left: 0.25rem;
+  white-space: nowrap;
+}
+
+.rightPanel {
+  width: 280px;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btnPrimary {
+  padding: 0.5rem 1rem;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background 0.15s;
+}
+
+.btnPrimary:hover:not(:disabled) {
+  background: var(--accent-hover);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btnSecondary {
+  padding: 0.5rem 1rem;
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.btnSecondary:hover:not(:disabled) {
+  background: var(--border);
+}
+
+.btnSecondary:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.btnDanger {
+  padding: 0.25rem 0.5rem;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.btnDanger:hover {
+  background: var(--danger-hover);
+}
+
+.selectedList {
+  border-top: 1px solid var(--border);
+  padding-top: 0.5rem;
+  overflow-y: auto;
+}
+
+.selectedList h4 {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.selectedRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  font-size: 0.8125rem;
+}
+
+.selectedName {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.removeBtn {
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  padding: 0 0.25rem;
+}
+
+.removeBtn:hover {
+  color: var(--danger-hover);
+}
+
+.hint {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.emptyState {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 2rem;
+  font-style: italic;
+  font-size: 0.875rem;
+}
+
+.detailBadges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-bottom: 0.75rem;
+}
+
+.attuneBadge {
+  display: inline-block;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+.tabBar {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.75rem;
+}
+
+.tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  padding: 0.375rem 0.75rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.tabActive {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.detailBody {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.detailMeta {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.detailDesc {
+  white-space: pre-wrap;
+  margin-bottom: 1rem;
+}
+
+.detailActions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.variantList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.variantCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+}
+
+.variantToggle {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  width: 100%;
+  padding: 0.625rem 0.75rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.variantToggle:hover {
+  background: var(--accent-light);
+}
+
+.variantToggle input {
+  margin-top: 2px;
+}
+
+.variantInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.variantRequires {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.variantDesc {
+  font-size: 0.78rem;
+  color: var(--text);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.field label {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.fieldRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 400 !important;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.printArea {
+  display: none;
+}
+
+@media print {
+  :global(body *) {
+    visibility: hidden;
+  }
+
+  .printArea,
+  .printArea * {
+    visibility: visible;
+  }
+
+  .printArea {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  .printGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 3in);
+    gap: 0.25in;
+  }
+
+  .printCard {
+    width: 3in;
+    height: 5in;
+    border: 1px solid #000;
+    border-radius: 6px;
+    padding: 0.2in;
+    box-sizing: border-box;
+    overflow: hidden;
+    page-break-inside: avoid;
+    display: flex;
+    flex-direction: column;
+    gap: 0.1in;
+    font-size: 10pt;
+    color: #000;
+    background: #fff;
+  }
+
+  .printHeader {
+    border-bottom: 1px solid #000;
+    padding-bottom: 0.08in;
+  }
+
+  .printName {
+    font-size: 13pt;
+    font-weight: bold;
+  }
+
+  .printBadges {
+    margin-top: 0.05in;
+    display: flex;
+    gap: 0.08in;
+    flex-wrap: wrap;
+  }
+
+  .printBody {
+    flex: 1;
+    overflow: hidden;
+    white-space: pre-wrap;
+    font-size: 9pt;
+  }
+
+  .printFooter {
+    display: flex;
+    justify-content: space-between;
+    font-size: 8.5pt;
+    border-top: 1px solid #000;
+    padding-top: 0.08in;
+  }
+}
+
+@media (max-width: 900px) {
+  .body {
+    flex-direction: column;
+  }
+
+  .leftPanel {
+    width: 100%;
+    min-width: 0;
+    max-height: 55vh;
+  }
+
+  .rightPanel {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .page {
+    height: auto;
+  }
+}

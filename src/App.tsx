@@ -18,6 +18,7 @@ const NPCPage = lazy(() => import('./pages/NPCPage'))
 const EncounterBuilderPage = lazy(() => import('./pages/EncounterBuilderPage'))
 const MapsPage = lazy(() => import('./pages/MapsPage'))
 const StoryPlannerPage = lazy(() => import('./pages/StoryPlannerPage'))
+const MagicItemsPage = lazy(() => import('./pages/MagicItemsPage'))
 
 function SuspenseWrapper({ children }: { children: React.ReactNode }) {
   return <Suspense fallback={<LoadingSpinner />}>{children}</Suspense>
@@ -38,6 +39,7 @@ function App() {
               <Route path="/encounters" element={<SuspenseWrapper><EncounterBuilderPage /></SuspenseWrapper>} />
               <Route path="/maps" element={<SuspenseWrapper><MapsPage /></SuspenseWrapper>} />
               <Route path="/story" element={<SuspenseWrapper><StoryPlannerPage /></SuspenseWrapper>} />
+              <Route path="/magic-items" element={<SuspenseWrapper><MagicItemsPage /></SuspenseWrapper>} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

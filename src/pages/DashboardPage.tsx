@@ -6,6 +6,7 @@ const tools = [
   { path: '/encounters', title: 'Encounter Builder', desc: 'Build and manage combat encounters.' },
   { path: '/maps', title: 'World Map', desc: 'Upload and manage campaign maps.' },
   { path: '/story', title: 'Game Story Line', desc: 'Plan and write your campaign story.' },
+  { path: '/magic-items', title: 'Magic Items', desc: 'Browse, create, and print magic item cards.' },
 ]
 
 export default function DashboardPage() {
