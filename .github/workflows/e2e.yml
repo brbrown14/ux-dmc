@@ -11,16 +11,19 @@ permissions:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/checkout@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
         with:
-          repository: brbrown14/dungeon-masters-companion
-          path: backend
-          # GITHUB_TOKEN works for public repos under the same org/user.
-          # If the backend repo is private, set a PAT as GHCR_PAT.
-          token: ${{ secrets.GHCR_PAT || github.token }}
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GHCR_PAT || github.token }}
+
+      - name: Pull backend Docker image
+        run: docker pull ghcr.io/brbrown14/dungeon-masters-companion:latest
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -30,10 +33,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Build backend Docker image
-        run: docker build -t ghcr.io/brbrown14/dungeon-masters-companion:latest .
-        working-directory: backend
 
       - name: Build and start services
         run: docker compose up -d --build
@@ -55,12 +54,14 @@ jobs:
       - name: Ensure auth directory exists
         run: mkdir -p e2e/.auth
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium firefox webkit
-
       - name: Run E2E tests
         id: tests
-        run: npm run test:e2e
+        run: |
+          docker run --rm --network host \
+            -v "${{ github.workspace }}:/work" -w /work \
+            -e CI=true \
+            mcr.microsoft.com/playwright:v1.60.0-noble \
+            npx playwright test
         env:
           CI: true
 
