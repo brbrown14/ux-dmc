@@ -405,7 +405,7 @@ function StatBlock({ monster }: { monster: Monster }) {
     <div className={styles.statBlock}>
       {monster.imagePath && (
         <div className={styles.monsterImage}>
-          <img src={`/api/maps/image/${encodeURIComponent(monster.imagePath)}`} alt={monster.name} />
+          <img src={`/monster-images/${encodeURI(monster.imagePath)}`} alt={monster.name} />
         </div>
       )}
       <div className={styles.statFields}>
