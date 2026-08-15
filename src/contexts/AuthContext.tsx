@@ -20,20 +20,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       for (let attempt = 0; attempt < 5; attempt++) {
         if (cancelled) return
         try {
-          const res = await fetch('/api/monsters', {
+          const res = await fetch('/api/auth/status', {
             credentials: 'same-origin',
             redirect: 'manual',
             signal: AbortSignal.timeout(5000),
           })
-          if (!cancelled) {
-            if (res.ok) {
-              setIsAuthenticated(true)
-              setIsLoading(false)
-              return
-            }
-            if (attempt < 4) {
-              await new Promise((r) => setTimeout(r, 2000))
-            }
+          if (!cancelled && res.ok) {
+            const body = (await res.json()) as { authenticated: boolean }
+            setIsAuthenticated(body.authenticated)
+            setIsLoading(false)
+            return
+          }
+          if (attempt < 4) {
+            await new Promise((r) => setTimeout(r, 2000))
           }
         } catch {
           if (attempt < 4) {

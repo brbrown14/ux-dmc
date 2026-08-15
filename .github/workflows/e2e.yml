@@ -11,6 +11,7 @@ permissions:
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
 
@@ -53,12 +54,14 @@ jobs:
       - name: Ensure auth directory exists
         run: mkdir -p e2e/.auth
 
-      - name: Install Playwright browsers
-        run: npx playwright install --with-deps chromium firefox webkit
-
       - name: Run E2E tests
         id: tests
-        run: npm run test:e2e
+        run: |
+          docker run --rm --network host \
+            -v "${{ github.workspace }}:/work" -w /work \
+            -e CI=true \
+            mcr.microsoft.com/playwright:v1.60.0-noble \
+            npx playwright test
         env:
           CI: true
 
