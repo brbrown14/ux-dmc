@@ -26,6 +26,11 @@ interface EncounterMonsterEntry {
 
 type ToastState = { message: string; type: 'success' | 'error' } | null
 
+function monsterImageUrl(monster: Monster): string | null {
+  if (!monster.imagePath) return null
+  return `/monster-images/${monster.imagePath.split('/').map(encodeURIComponent).join('/')}`
+}
+
 export default function EncounterBuilderPage() {
   const [allMonsters, setAllMonsters] = useState<Monster[]>([])
   const [loading, setLoading] = useState(true)
@@ -360,6 +365,9 @@ export default function EncounterBuilderPage() {
 }
 
 function StatBlock({ monster }: { monster: Monster }) {
+  const [imgError, setImgError] = useState(false)
+  const imageUrl = monsterImageUrl(monster)
+
   function mod(score: number | null) {
     if (score == null) return ''
     const m = Math.floor((score - 10) / 2)
@@ -403,20 +411,22 @@ function StatBlock({ monster }: { monster: Monster }) {
 
   return (
     <div className={styles.statBlock}>
-      {monster.imagePath && (
-        <div className={styles.monsterImage}>
-          <img src={`/monster-images/${encodeURI(monster.imagePath)}`} alt={monster.name} />
+      <div className={styles.statHeader}>
+        <div className={styles.statFields}>
+          <p><strong>Source:</strong> {monster.source || '-'}</p>
+          {monster.size && <p><strong>Size:</strong> {monster.size}</p>}
+          {monster.type && <p><strong>Type:</strong> {monster.type}</p>}
+          {monster.alignment && <p><strong>Alignment:</strong> {monster.alignment}</p>}
+          {monster.armorClass != null && <p><strong>Armor Class:</strong> {monster.armorClass}</p>}
+          {monster.hitPoints != null && <p><strong>Hit Points:</strong> {monster.hitPoints}{monster.hitPointsFormula ? ` (${monster.hitPointsFormula})` : ''}</p>}
+          <p><strong>Speed:</strong> {parseSpeed(monster.speed)}</p>
+          {monster.challengeRating && <p><strong>Challenge Rating:</strong> {monster.challengeRating}{monster.xp ? ` (${monster.xp} XP)` : ''}</p>}
         </div>
-      )}
-      <div className={styles.statFields}>
-        <p><strong>Source:</strong> {monster.source || '-'}</p>
-        {monster.size && <p><strong>Size:</strong> {monster.size}</p>}
-        {monster.type && <p><strong>Type:</strong> {monster.type}</p>}
-        {monster.alignment && <p><strong>Alignment:</strong> {monster.alignment}</p>}
-        {monster.armorClass != null && <p><strong>Armor Class:</strong> {monster.armorClass}</p>}
-        {monster.hitPoints != null && <p><strong>Hit Points:</strong> {monster.hitPoints}{monster.hitPointsFormula ? ` (${monster.hitPointsFormula})` : ''}</p>}
-        <p><strong>Speed:</strong> {parseSpeed(monster.speed)}</p>
-        {monster.challengeRating && <p><strong>Challenge Rating:</strong> {monster.challengeRating}{monster.xp ? ` (${monster.xp} XP)` : ''}</p>}
+        {imageUrl && !imgError && (
+          <div className={styles.monsterImage}>
+            <img src={imageUrl} alt={monster.name} onError={() => setImgError(true)} loading="lazy" />
+          </div>
+        )}
       </div>
 
       <h4 className={styles.sectionTitle}>Ability Scores</h4>
