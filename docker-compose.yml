@@ -17,6 +17,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/dungeonmaster
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      MONSTER_IMAGES_PATH: /app/monster-images
     depends_on:
       postgres:
         condition: service_healthy

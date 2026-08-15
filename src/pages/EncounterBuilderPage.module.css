@@ -462,18 +462,26 @@
   line-height: 1.6;
 }
 
+.statHeader {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
 .monsterImage {
-  margin-bottom: 1rem;
-  text-align: center;
+  flex-shrink: 0;
+  width: 180px;
 }
 
 .monsterImage img {
-  max-width: 180px;
+  width: 100%;
   border-radius: var(--radius);
   box-shadow: var(--card-shadow);
 }
 
 .statFields {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
@@ -534,5 +542,13 @@
 
   .page {
     height: auto;
+  }
+
+  .statHeader {
+    flex-direction: column;
+  }
+
+  .monsterImage {
+    width: 100%;
   }
 }
