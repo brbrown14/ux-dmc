@@ -4,8 +4,16 @@
   height: calc(100vh - 3.5rem - 3rem);
 }
 
-.heading {
+.pageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   margin-bottom: 1rem;
+}
+
+.heading {
+  margin-bottom: 0;
 }
 
 .body {
@@ -163,6 +171,7 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  overflow-y: auto;
 }
 
 .btnPrimary {
@@ -224,26 +233,134 @@
   overflow-y: auto;
 }
 
+.builderPanel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.625rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.builderPanel h4 {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.builderGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.builderTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.builderBonus {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.builderButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.builderButton {
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-secondary);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.72rem;
+  transition: background 0.15s;
+}
+
+.builderButton:hover {
+  background: var(--accent-light);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.builderEmpty {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .selectedList h4 {
   font-size: 0.85rem;
   color: var(--text-muted);
   margin-bottom: 0.5rem;
 }
 
-.selectedRow {
+.selectedCard {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  padding: 0.5rem;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0;
-  font-size: 0.8125rem;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
-.selectedName {
+.selectedCardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.375rem;
+}
+
+.selectedCardName {
   flex: 1;
+  font-size: 0.8125rem;
+  font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.selectedCardBadges {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.selectedCardBody {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.selectedCardApplies {
+  font-size: 0.68rem;
+  font-style: italic;
+  color: var(--text-muted);
+}
+
+.selectedCardFooter {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.375rem;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border);
+  padding-top: 0.25rem;
 }
 
 .removeBtn {
@@ -341,9 +458,70 @@
 .variantList {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  max-height: 50vh;
+  gap: 1rem;
+  flex: 1;
   overflow-y: auto;
+}
+
+.variantSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.variantSectionTitle {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.125rem;
+}
+
+.variantRow {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.5rem 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card-bg);
+  transition: background 0.1s;
+}
+
+.variantRow:hover {
+  background: var(--accent-light);
+}
+
+.variantRow > input {
+  margin-top: 2px;
+}
+
+.variantRowInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.variantRowTop {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.variantRowName {
+  font-size: 0.85rem;
+}
+
+.variantMemberCount {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+  white-space: nowrap;
 }
 
 .variantCard {
@@ -450,13 +628,13 @@
 
   .printGrid {
     display: grid;
-    grid-template-columns: repeat(2, 3in);
+    grid-template-columns: 5in;
     gap: 0.25in;
   }
 
   .printCard {
-    width: 3in;
-    height: 5in;
+    width: 5in;
+    height: 3in;
     border: 1px solid #000;
     border-radius: 6px;
     padding: 0.2in;
@@ -493,6 +671,14 @@
     overflow: hidden;
     white-space: pre-wrap;
     font-size: 9pt;
+  }
+
+  .printApplies {
+    font-style: italic;
+    font-size: 8pt;
+    border-top: 1px solid #000;
+    padding-top: 0.06in;
+    margin-top: 0.05in;
   }
 
   .printFooter {

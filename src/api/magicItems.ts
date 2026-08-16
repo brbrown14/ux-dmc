@@ -41,6 +41,10 @@ export function fetchMagicItemVariants(id: number): Promise<MagicItem[]> {
   return get<MagicItem[]>(`/api/magic-items/${id}/variants`)
 }
 
+export function fetchAllMagicItemVariants(): Promise<MagicItem[]> {
+  return get<MagicItem[]>('/api/magic-items/variants')
+}
+
 export function createMagicItem(item: MagicItemInput): Promise<MagicItem> {
   return post<MagicItem>('/api/magic-items', item)
 }

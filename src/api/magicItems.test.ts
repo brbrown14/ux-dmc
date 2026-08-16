@@ -3,6 +3,7 @@ import {
   fetchMagicItems,
   fetchMagicItem,
   fetchMagicItemVariants,
+  fetchAllMagicItemVariants,
   createMagicItem,
   updateMagicItem,
   deleteMagicItem,
@@ -63,6 +64,16 @@ describe('fetchMagicItemVariants', () => {
     mockGet.mockResolvedValue([{ id: 8, name: 'Armor +1', isVariant: true }])
     const result = await fetchMagicItemVariants(3)
     expect(mockGet).toHaveBeenCalledWith('/api/magic-items/3/variants')
+    expect(result).toHaveLength(1)
+    expect(result[0].isVariant).toBe(true)
+  })
+})
+
+describe('fetchAllMagicItemVariants', () => {
+  it('calls get with /api/magic-items/variants', async () => {
+    mockGet.mockResolvedValue([{ id: 8, name: 'Weapon +1', isVariant: true }])
+    const result = await fetchAllMagicItemVariants()
+    expect(mockGet).toHaveBeenCalledWith('/api/magic-items/variants')
     expect(result).toHaveLength(1)
     expect(result[0].isVariant).toBe(true)
   })
