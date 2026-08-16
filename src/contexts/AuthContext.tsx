@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import { getAuthToken, setAuthToken, clearAuthToken } from '../api/auth'
 
 interface AuthContextType {
   isAuthenticated: boolean
@@ -17,6 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false
 
     async function checkAuth() {
+      const token = getAuthToken()
       for (let attempt = 0; attempt < 5; attempt++) {
         if (cancelled) return
         try {
@@ -24,9 +26,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             credentials: 'same-origin',
             redirect: 'manual',
             signal: AbortSignal.timeout(5000),
+            headers: token ? { Authorization: `Basic ${token}` } : {},
           })
           if (!cancelled && res.ok) {
             const body = (await res.json()) as { authenticated: boolean }
+            if (!body.authenticated) clearAuthToken()
             setIsAuthenticated(body.authenticated)
             setIsLoading(false)
             return
@@ -48,30 +52,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(async (username: string, password: string) => {
-    const params = new URLSearchParams({ username, password })
-    const res = await fetch('/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: params,
-      redirect: 'follow',
+    const token = btoa(`${username}:${password}`)
+    const res = await fetch('/api/auth/status', {
+      headers: { Authorization: `Basic ${token}` },
       credentials: 'same-origin',
     })
     if (res.ok) {
-      setIsAuthenticated(true)
-    } else {
-      setIsAuthenticated(false)
-      throw new Error('Invalid credentials')
+      const body = (await res.json()) as { authenticated: boolean }
+      if (body.authenticated) {
+        setAuthToken(token)
+        setIsAuthenticated(true)
+        return
+      }
     }
+    clearAuthToken()
+    setIsAuthenticated(false)
+    throw new Error('Invalid credentials')
   }, [])
 
   const logout = useCallback(async () => {
-    try {
-      await fetch('/logout', { method: 'POST', credentials: 'same-origin' })
-    } catch {
-      // network errors are ignored; user is logged out regardless
-    } finally {
-      setIsAuthenticated(false)
-    }
+    clearAuthToken()
+    setIsAuthenticated(false)
   }, [])
 
   return (
