@@ -23,7 +23,7 @@ describe('DashboardPage', () => {
     expect(screen.getByText("Dungeon Master's Companion")).toBeInTheDocument()
   })
 
-  it('renders all four tool cards', () => {
+  it('renders all five tool cards', () => {
     render(
       <MemoryRouter>
         <DashboardPage />
@@ -33,6 +33,7 @@ describe('DashboardPage', () => {
     expect(screen.getByText('Encounter Builder')).toBeInTheDocument()
     expect(screen.getByText('World Map')).toBeInTheDocument()
     expect(screen.getByText('Game Story Line')).toBeInTheDocument()
+    expect(screen.getByText('Magic Items')).toBeInTheDocument()
   })
 
   it('navigates to npcs on card click', () => {
@@ -73,6 +74,16 @@ describe('DashboardPage', () => {
     )
     fireEvent.click(screen.getByText('Game Story Line'))
     expect(mockNavigate).toHaveBeenCalledWith('/story')
+  })
+
+  it('navigates to magic items on card click', () => {
+    render(
+      <MemoryRouter>
+        <DashboardPage />
+      </MemoryRouter>,
+    )
+    fireEvent.click(screen.getByText('Magic Items'))
+    expect(mockNavigate).toHaveBeenCalledWith('/magic-items')
   })
 
   it('renders logout form', () => {

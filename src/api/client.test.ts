@@ -13,8 +13,9 @@ function mockFetch(status: number, body?: unknown, ok?: boolean) {
 
 beforeEach(() => {
   vi.restoreAllMocks()
-  delete (globalThis as any).location
+  delete (globalThis as unknown as { location?: Location }).location
   globalThis.location = { href: '' } as Location
+  localStorage.clear()
 })
 
 describe('get', () => {
@@ -25,6 +26,16 @@ describe('get', () => {
     expect(fetch).toHaveBeenCalledWith('/api/test', {
       credentials: 'same-origin',
       headers: {},
+    })
+  })
+
+  it('attaches Basic auth header when a token is stored', async () => {
+    localStorage.setItem('dmc-basic-token', btoa('user:pass'))
+    globalThis.fetch = mockFetch(200, { data: 'ok' })
+    await get('/api/test')
+    expect(fetch).toHaveBeenCalledWith('/api/test', {
+      credentials: 'same-origin',
+      headers: { Authorization: `Basic ${btoa('user:pass')}` },
     })
   })
 
@@ -79,6 +90,7 @@ describe('postFormData', () => {
     expect(fetch).toHaveBeenCalledWith('/api/test', {
       method: 'POST',
       credentials: 'same-origin',
+      headers: {},
       body: fd,
     })
   })

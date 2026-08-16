@@ -10,6 +10,7 @@ const links = [
   { to: '/encounters', label: 'Encounters' },
   { to: '/maps', label: 'Maps' },
   { to: '/story', label: 'Story' },
+  { to: '/magic-items', label: 'Magic Items' },
 ]
 
 export function NavBar() {

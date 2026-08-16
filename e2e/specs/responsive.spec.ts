@@ -17,6 +17,6 @@ test.describe('Responsive layout', () => {
     await dashboard.goto()
 
     const cards = page.getByRole('button').filter({ has: page.locator('h3') })
-    await expect(cards).toHaveCount(4)
+    await expect(cards).toHaveCount(5)
   })
 })

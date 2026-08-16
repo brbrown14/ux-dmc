@@ -94,3 +94,23 @@ export interface MapUpdateRequest {
   title: string
   description: string
 }
+
+export interface MagicItem {
+  id: number
+  name: string
+  description: string
+  rarity: string | null
+  type: string | null
+  tier: string | null
+  source: string | null
+  page: number | null
+  weight: string | null
+  wondrous: boolean | null
+  requiresAttunement: boolean | null
+  attunement: string | null
+  isVariant: boolean
+  variantRequires: string | null
+  detailsJson: string | null
+  custom: boolean
+  ownerUsername: string | null
+}

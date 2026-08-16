@@ -14,6 +14,7 @@ function setupFetchMock(status: number, ok?: boolean, body: { authenticated: boo
 beforeEach(() => {
   vi.restoreAllMocks()
   globalThis.fetch = vi.fn()
+  localStorage.clear()
 })
 
 describe('AuthProvider', () => {
@@ -35,41 +36,40 @@ describe('AuthProvider', () => {
     expect(fetch).toHaveBeenCalledTimes(1)
   })
 
-  it('login sets authenticated to true on success', async () => {
+  it('login sets authenticated to true on success and stores token', async () => {
     globalThis.fetch = setupFetchMock(200)
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
     await vi.waitFor(() => expect(result.current.isLoading).toBe(false))
     globalThis.fetch = setupFetchMock(200)
     await act(async () => { await result.current.login('user', 'pass') })
     expect(result.current.isAuthenticated).toBe(true)
+    expect(localStorage.getItem('dmc-basic-token')).toBe(btoa('user:pass'))
+    expect(fetch).toHaveBeenCalledWith(
+      '/api/auth/status',
+      expect.objectContaining({ headers: { Authorization: `Basic ${btoa('user:pass')}` } }),
+    )
   })
 
   it('login throws on failure and does not authenticate', async () => {
     globalThis.fetch = setupFetchMock(200)
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
     await vi.waitFor(() => expect(result.current.isLoading).toBe(false))
-    globalThis.fetch = setupFetchMock(401, false)
+    globalThis.fetch = setupFetchMock(200, true, { authenticated: false })
     await act(async () => {
       await expect(result.current.login('bad', 'creds')).rejects.toThrow('Invalid credentials')
     })
     expect(result.current.isAuthenticated).toBe(false)
+    expect(localStorage.getItem('dmc-basic-token')).toBeNull()
   })
 
-  it('logout sets authenticated to false', async () => {
-    globalThis.fetch = setupFetchMock(200)
+  it('logout sets authenticated to false and clears token', async () => {
+    localStorage.setItem('dmc-basic-token', btoa('user:pass'))
+    globalThis.fetch = setupFetchMock(200, true, { authenticated: true })
     const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
     await vi.waitFor(() => expect(result.current.isLoading).toBe(false))
-    globalThis.fetch = setupFetchMock(200)
+    expect(result.current.isAuthenticated).toBe(true)
     await act(async () => { await result.current.logout() })
     expect(result.current.isAuthenticated).toBe(false)
-  })
-
-  it('logout sets authenticated to false even on fetch failure', async () => {
-    globalThis.fetch = setupFetchMock(200)
-    const { result } = renderHook(() => useAuth(), { wrapper: AuthProvider })
-    await vi.waitFor(() => expect(result.current.isLoading).toBe(false))
-    globalThis.fetch = vi.fn().mockRejectedValue(new Error('Network error'))
-    await act(async () => { await result.current.logout() })
-    expect(result.current.isAuthenticated).toBe(false)
+    expect(localStorage.getItem('dmc-basic-token')).toBeNull()
   })
 })

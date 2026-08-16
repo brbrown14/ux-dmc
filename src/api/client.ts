@@ -1,4 +1,5 @@
 const API_BASE = ''
+import { getAuthToken } from './auth'
 
 export class ApiError extends Error {
   status: number
@@ -24,6 +25,8 @@ async function handleResponse<T>(response: Response): Promise<T> {
 }
 
 function headers(extra: Record<string, string> = {}): Record<string, string> {
+  const token = getAuthToken()
+  if (token) return { ...extra, Authorization: `Basic ${token}` }
   return { ...extra }
 }
 
@@ -49,6 +52,7 @@ export async function postFormData<T>(path: string, formData: FormData): Promise
   const res = await fetch(`${API_BASE}${path}`, {
     method: 'POST',
     credentials: 'same-origin',
+    headers: headers(),
     body: formData,
   })
   return handleResponse<T>(res)
