@@ -4,6 +4,7 @@ import {
   fetchMagicItem,
   fetchMagicItemVariants,
   fetchAllMagicItemVariants,
+  fetchBaseItems,
   createMagicItem,
   updateMagicItem,
   deleteMagicItem,
@@ -76,6 +77,15 @@ describe('fetchAllMagicItemVariants', () => {
     expect(mockGet).toHaveBeenCalledWith('/api/magic-items/variants')
     expect(result).toHaveLength(1)
     expect(result[0].isVariant).toBe(true)
+  })
+})
+
+describe('fetchBaseItems', () => {
+  it('calls get with /api/magic-items/base-items', async () => {
+    mockGet.mockResolvedValue([{ id: 1, name: 'Longsword', type: 'M' }])
+    const result = await fetchBaseItems()
+    expect(mockGet).toHaveBeenCalledWith('/api/magic-items/base-items')
+    expect(result).toEqual([{ id: 1, name: 'Longsword', type: 'M' }])
   })
 })
 

@@ -4,6 +4,7 @@ import MagicItemsPage from './MagicItemsPage'
 
 const mockFetchItems = vi.fn()
 const mockFetchAllVariants = vi.fn()
+const mockFetchBaseItems = vi.fn()
 const mockCreateItem = vi.fn()
 const mockUpdateItem = vi.fn()
 const mockDeleteItem = vi.fn()
@@ -11,6 +12,7 @@ const mockDeleteItem = vi.fn()
 vi.mock('../api/magicItems', () => ({
   fetchMagicItems: (...args: unknown[]) => mockFetchItems(...args),
   fetchAllMagicItemVariants: (...args: unknown[]) => mockFetchAllVariants(...args),
+  fetchBaseItems: (...args: unknown[]) => mockFetchBaseItems(...args),
   createMagicItem: (...args: unknown[]) => mockCreateItem(...args),
   updateMagicItem: (...args: unknown[]) => mockUpdateItem(...args),
   deleteMagicItem: (...args: unknown[]) => mockDeleteItem(...args),
@@ -125,12 +127,49 @@ const sampleVariants = [
   }),
 ]
 
+function baseItemFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 1000,
+    name: 'Longsword',
+    description: '',
+    source: 'PHB',
+    page: 149,
+    type: 'M',
+    weight: '3 lb.',
+    value: null,
+    weaponCategory: 'martial',
+    property: 'V',
+    range: null,
+    dmg1: '1d8',
+    dmg2: '1d10',
+    dmgType: 'S',
+    ac: null,
+    stealth: null,
+    strength: null,
+    flags: 'weapon,sword',
+    detailsJson: null,
+    ...overrides,
+  }
+}
+
+const sampleBaseItems = [
+  baseItemFixture({ id: 1000, name: 'Longsword', dmg1: '1d8', dmgType: 'S' }),
+  baseItemFixture({ id: 1001, name: 'Dagger', type: 'M', dmg1: '1d4', dmgType: 'P', property: 'F,L,T', flags: 'weapon,dagger' }),
+  baseItemFixture({ id: 1002, name: 'Greatsword', dmg1: '2d6', dmgType: 'S', property: 'H', flags: 'weapon,sword' }),
+  baseItemFixture({ id: 1003, name: 'Scimitar', dmg1: '1d6', dmgType: 'S', property: 'F,L', flags: 'weapon,sword' }),
+  baseItemFixture({ id: 1004, name: 'Shortsword', dmg1: '1d6', dmgType: 'P', property: 'F,L', flags: 'weapon,sword' }),
+  baseItemFixture({ id: 1005, name: 'Plate Armor', type: 'HA', weight: '65 lb.', weaponCategory: null, property: null, dmg1: null, dmg2: null, dmgType: null, ac: 18, stealth: true, strength: '15', flags: 'armor' }),
+  baseItemFixture({ id: 1006, name: 'Leather Armor', type: 'LA', weight: '10 lb.', weaponCategory: null, property: null, dmg1: null, dmg2: null, dmgType: null, ac: 11, stealth: false, strength: null, flags: 'armor' }),
+  baseItemFixture({ id: 1007, name: 'Shield', type: 'S', weight: '6 lb.', weaponCategory: null, property: null, dmg1: null, dmg2: null, dmgType: null, ac: 2, stealth: false, strength: null, flags: '' }),
+]
+
 beforeEach(() => {
   vi.clearAllMocks()
   window.print = vi.fn()
   window.confirm = vi.fn(() => true)
   mockFetchItems.mockResolvedValue(sampleItems)
   mockFetchAllVariants.mockResolvedValue([])
+  mockFetchBaseItems.mockResolvedValue(sampleBaseItems)
 })
 
 describe('MagicItemsPage', () => {
@@ -429,12 +468,12 @@ describe('MagicItemsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Variants' }))
     await screen.findByText('+X Weapons')
     fireEvent.click(screen.getByLabelText('Select +X Armor for printing'))
-    expect(screen.getByRole('button', { name: '+1 Plate' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: '+1 Leather' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '+1 Plate Armor' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '+1 Leather Armor' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: '+1 Shield' })).not.toBeInTheDocument()
-    fireEvent.click(screen.getByRole('button', { name: '+1 Plate' }))
+    fireEvent.click(screen.getByRole('button', { name: '+1 Plate Armor' }))
     const printArea = screen.getByTestId('print-area')
-    expect(within(printArea).getByText('+1 Plate')).toBeInTheDocument()
+    expect(within(printArea).getByText('+1 Plate Armor')).toBeInTheDocument()
   })
 
   it('removes built cards when a variant is deselected', async () => {
@@ -474,5 +513,32 @@ describe('MagicItemsPage', () => {
     expect(screen.getByRole('button', { name: 'Sword of Sharpness (Longsword)' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sword of Sharpness (Scimitar)' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Sword of Sharpness (Shortsword)' })).not.toBeInTheDocument()
+  })
+
+  it('shows base items on the Common tab and builds a print card from one', async () => {
+    render(<MagicItemsPage />)
+    await screen.findByText('Alchemy Jug')
+    fireEvent.click(screen.getByRole('button', { name: 'Common' }))
+    expect(await screen.findByText('8 base items')).toBeInTheDocument()
+    expect(screen.getByText('Longsword')).toBeInTheDocument()
+    expect(screen.getByText('Plate Armor')).toBeInTheDocument()
+    expect(screen.getByText(/1d8 slashing/)).toBeInTheDocument()
+    fireEvent.click(screen.getByLabelText('Select Longsword for printing'))
+    const printArea = screen.getByTestId('print-area')
+    expect(within(printArea).getByText('Longsword')).toBeInTheDocument()
+    expect(within(printArea).getByText('1d8 slashing')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Print selected \(1\)/ }))
+    expect(window.print).toHaveBeenCalled()
+  })
+
+  it('filters base items by type on the Common tab', async () => {
+    render(<MagicItemsPage />)
+    await screen.findByText('Alchemy Jug')
+    fireEvent.click(screen.getByRole('button', { name: 'Common' }))
+    await screen.findByText('8 base items')
+    fireEvent.change(screen.getByLabelText('Filter base items by type'), { target: { value: 'HA' } })
+    expect(screen.getByText('Plate Armor')).toBeInTheDocument()
+    expect(screen.queryByText('Longsword')).not.toBeInTheDocument()
+    expect(screen.getByText('1 base item')).toBeInTheDocument()
   })
 })
