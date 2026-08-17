@@ -78,6 +78,41 @@ describe('calcEncounterDifficulty', () => {
     expect(result!.multiplier).toBe(1)
     expect(result!.adjustedXp).toBe(1800)
   })
+
+  it('returns zero xp and trivial difficulty for empty monsters', () => {
+    const result = calcEncounterDifficulty([1, 2], [])
+    expect(result).not.toBeNull()
+    expect(result!.monsterCount).toBe(0)
+    expect(result!.totalXp).toBe(0)
+    expect(result!.adjustedXp).toBe(0)
+    expect(result!.diffIdx).toBe(-1)
+  })
+
+  it('does not adjust multiplier for party size exactly 3', () => {
+    const result = calcEncounterDifficulty([1, 1, 1], [{ xp: 100, quantity: 5 }])
+    expect(result).not.toBeNull()
+    expect(result!.multiplier).toBe(2)
+    expect(result!.partySize).toBe(3)
+  })
+
+  it('does not adjust multiplier for party size exactly 5', () => {
+    const result = calcEncounterDifficulty([1, 1, 1, 1, 1], [{ xp: 100, quantity: 5 }])
+    expect(result).not.toBeNull()
+    expect(result!.multiplier).toBe(2)
+    expect(result!.partySize).toBe(5)
+  })
+
+  it('uses correct thresholds for level 19', () => {
+    const result = calcEncounterDifficulty([19], [{ xp: 2400, quantity: 1 }])
+    expect(result).not.toBeNull()
+    expect(result!.thresholds).toEqual([2400, 4900, 7300, 10900])
+  })
+
+  it('uses correct thresholds for level 20', () => {
+    const result = calcEncounterDifficulty([20], [{ xp: 2800, quantity: 1 }])
+    expect(result).not.toBeNull()
+    expect(result!.thresholds).toEqual([2800, 5700, 8500, 12700])
+  })
 })
 
 describe('getDifficultyLabel', () => {

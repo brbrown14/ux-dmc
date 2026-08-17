@@ -186,4 +186,59 @@ describe('MapsPage', () => {
     fireEvent.click(screen.getByText('NPCs (0)'))
     expect(await screen.findByText('Guard')).toBeInTheDocument()
   })
+
+  it('renders map image when imagePath is provided', async () => {
+    mockFetchMaps.mockResolvedValue([makeMap({ id: 1, title: 'Forest', imagePath: 'forest.jpg' })])
+    const { container } = render(<MapsPage />)
+    await screen.findByText('Forest')
+    const img = container.querySelector('img')
+    expect(img).toBeInTheDocument()
+    expect(img!.getAttribute('src')).toContain('forest.jpg')
+  })
+
+  it('hides broken map image on error', async () => {
+    mockFetchMaps.mockResolvedValue([makeMap({ id: 1, title: 'Forest', imagePath: 'bad.jpg' })])
+    const { container } = render(<MapsPage />)
+    await screen.findByText('Forest')
+    const img = container.querySelector('img')!
+    fireEvent.error(img)
+    expect(img.style.display).toBe('none')
+  })
+
+  it('shows detail modal with image when map has imagePath', async () => {
+    mockFetchMaps.mockResolvedValue([makeMap({ id: 1, title: 'Forest', description: 'Green', imagePath: 'forest.jpg' })])
+    const { container } = render(<MapsPage />)
+    fireEvent.click(await screen.findByText('Forest'))
+    const imgs = container.querySelectorAll('img')
+    expect(imgs.length).toBe(2)
+  })
+
+  it('shows error toast when NPC fetch fails', async () => {
+    mockFetchMaps.mockResolvedValue([makeMap({ id: 1, title: 'Forest', description: 'Green' })])
+    mockFetchNPCsByMap.mockRejectedValue(new Error('fail'))
+    render(<MapsPage />)
+    fireEvent.click(await screen.findByText('Forest'))
+    fireEvent.click(screen.getByText('NPCs (0)'))
+    expect(await screen.findByText('Failed to load NPCs')).toBeInTheDocument()
+  })
+
+  it('closes upload modal on cancel click', async () => {
+    mockFetchMaps.mockResolvedValue([])
+    render(<MapsPage />)
+    await screen.findByText('World Maps')
+    fireEvent.click(screen.getByText('+ Upload Map'))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Cancel'))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
+
+  it('closes upload modal on close button', async () => {
+    mockFetchMaps.mockResolvedValue([])
+    render(<MapsPage />)
+    await screen.findByText('World Maps')
+    fireEvent.click(screen.getByText('+ Upload Map'))
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+  })
 })
