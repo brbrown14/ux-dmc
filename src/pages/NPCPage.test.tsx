@@ -184,6 +184,21 @@ describe('NPCPage', () => {
     })
   })
 
+  it('update NPC preserves worldMapId when editing', async () => {
+    const npc = makeNPC({ id: 1, name: 'Eldrin', location: 'Forest', worldMapId: 7 })
+    mockFetchNPCs.mockResolvedValueOnce([npc]).mockResolvedValueOnce([npc])
+    mockFetchMaps.mockResolvedValue([{ id: 7, title: 'Forest', description: '', imagePath: null, imageType: null, ownerUsername: 'user' }])
+    mockUpdateNPC.mockResolvedValue(npc)
+    render(<NPCPage />)
+    await screen.findByText('Eldrin')
+    fireEvent.click(screen.getByText('Eldrin'))
+    fireEvent.click(screen.getByText('Edit'))
+    fireEvent.click(screen.getByText('Update NPC'))
+    await vi.waitFor(() => {
+      expect(mockUpdateNPC).toHaveBeenCalledWith(1, expect.objectContaining({ worldMapId: 7 }))
+    })
+  })
+
   it('cancel editing resets form to create mode', async () => {
     const npc = makeNPC({ id: 1, name: 'Eldrin', location: 'Forest' })
     mockFetchNPCs.mockResolvedValue([npc])

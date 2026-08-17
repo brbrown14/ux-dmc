@@ -19,8 +19,14 @@ export default function NPCPage() {
   const [occupation, setOccupation] = useState('')
   const [history, setHistory] = useState('')
   const [personality, setPersonality] = useState('')
+  const [worldMapId, setWorldMapId] = useState<number | null>(null)
   const [editingNpc, setEditingNpc] = useState<NPC | null>(null)
 
+  function handleLocationChange(value: string) {
+    setLocation(value)
+    const map = maps.find((m) => m.title === value)
+    setWorldMapId(map ? map.id : null)
+  }
   async function loadData() {
     const [npcData, mapData] = await Promise.all([fetchNPCs(), fetchMaps()])
     setNpcs(npcData)
@@ -48,6 +54,7 @@ export default function NPCPage() {
     setOccupation('')
     setHistory('')
     setPersonality('')
+    setWorldMapId(null)
     setEditingNpc(null)
   }
 
@@ -57,6 +64,7 @@ export default function NPCPage() {
     setOccupation(npc.occupation)
     setHistory(npc.history)
     setPersonality(npc.personality)
+    setWorldMapId(npc.worldMapId)
     setEditingNpc(npc)
   }
 
@@ -66,7 +74,7 @@ export default function NPCPage() {
       return
     }
     try {
-      const data = { name, location, occupation, history, personality, worldMapId: null }
+      const data = { name, location, occupation, history, personality, worldMapId }
       if (editingNpc) {
         await updateNPC(editingNpc.id, data)
         setToast({ message: 'NPC updated successfully!', type: 'success' })
@@ -132,7 +140,7 @@ export default function NPCPage() {
           </div>
           <div className={styles.field}>
             <label htmlFor="npc-location">Location:</label>
-            <select id="npc-location" value={location} onChange={(e) => setLocation(e.target.value)}>
+            <select id="npc-location" value={location} onChange={(e) => handleLocationChange(e.target.value)}>
               <option value="Unknown">Unknown</option>
               {maps.map((m) => <option key={m.id} value={m.title}>{m.title}</option>)}
             </select>

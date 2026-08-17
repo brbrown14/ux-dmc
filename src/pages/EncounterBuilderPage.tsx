@@ -295,11 +295,20 @@ export default function EncounterBuilderPage() {
               {diffResult && (
                 <div className={styles.diffDisplay}>
                   <div className={styles.diffBar}>
-                    {['easy', 'medium', 'hard', 'deadly'].map((key, i) => (
-                      <div key={key} className={`${styles.diffSegment} ${styles[`diff${key.charAt(0).toUpperCase() + key.slice(1)}`]} ${diffResult.monsterCount > 0 && i <= diffResult.diffIdx ? '' : styles.diffInactive}`}>
-                        {key.charAt(0).toUpperCase() + key.slice(1)} &le; {diffResult.thresholds[i].toLocaleString()}
+                    {diffResult.monsterCount > 0 ? (() => {
+                      const label = getDifficultyLabel(diffResult.diffIdx).charAt(0).toUpperCase() + getDifficultyLabel(diffResult.diffIdx).slice(1)
+                      const idx = diffResult.diffIdx >= 0 ? diffResult.diffIdx : 0
+                      const className = diffResult.diffIdx >= 0 ? styles[`diff${label}`] : styles.diffInactive
+                      return (
+                        <div className={`${styles.diffSegment} ${className}`}>
+                          {label} &le; {diffResult.thresholds[idx].toLocaleString()}
+                        </div>
+                      )
+                    })() : (
+                      <div className={`${styles.diffSegment} ${styles.diffInactive}`}>
+                        No monsters
                       </div>
-                    ))}
+                    )}
                   </div>
                   {diffResult.monsterCount > 0 && (
                     <div className={styles.diffDetail}>
