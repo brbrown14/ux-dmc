@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react'
 import {
   fetchMagicItems,
   fetchAllMagicItemVariants,
+  fetchBaseItems,
   createMagicItem,
   updateMagicItem,
   deleteMagicItem,
   type MagicItemInput,
 } from '../api/magicItems'
-import type { MagicItem } from '../api/types'
+import type { BaseItem, MagicItem } from '../api/types'
 import { LoadingSpinner } from '../components/shared/LoadingSpinner'
 import { Toast } from '../components/shared/Toast'
 import { Modal } from '../components/shared/Modal'
@@ -17,7 +18,7 @@ type ToastState = { message: string; type: 'success' | 'error' } | null
 type SortBy = 'name' | 'rarity' | 'type'
 type SortDir = 'asc' | 'desc'
 type SourceFilter = 'all' | 'official' | 'custom'
-type PageTab = 'items' | 'variants'
+type PageTab = 'items' | 'variants' | 'common'
 
 interface PrintSelection {
   key: string
@@ -29,6 +30,7 @@ interface PrintSelection {
   requiresAttunement: boolean | null
   attunement: string | null
   appliesTo?: string
+  stats?: string[]
 }
 
 interface VariantPrintEntry {
@@ -115,25 +117,31 @@ const SECTION_TITLES: Record<SectionKey, string> = {
   other: 'Other Variants',
 }
 
-const BASE_WEAPONS = [
-  'Club', 'Dagger', 'Greatclub', 'Handaxe', 'Javelin', 'Light Hammer', 'Mace',
-  'Quarterstaff', 'Sickle', 'Spear', 'Light Crossbow', 'Dart', 'Shortbow', 'Sling',
-  'Battleaxe', 'Flail', 'Glaive', 'Greataxe', 'Greatsword', 'Halberd', 'Lance',
-  'Longsword', 'Maul', 'Morningstar', 'Pike', 'Rapier', 'Scimitar', 'Shortsword',
-  'Trident', 'War Pick', 'Warhammer', 'Whip', 'Blowgun', 'Hand Crossbow',
-  'Heavy Crossbow', 'Longbow', 'Net',
-]
+const BASE_TYPE_LABELS: Record<string, string> = {
+  ...TYPE_LABELS,
+  SCF: 'Spellcasting Focus (SCF)',
+  AT: "Artisan's Tools (AT)",
+  INS: 'Instrument (INS)',
+  AF: 'Ammunition (AF)',
+}
 
-const BASE_SWORDS = ['Greatsword', 'Longsword', 'Rapier', 'Scimitar', 'Shortsword']
-const BASE_SLASHING_SWORDS = ['Greatsword', 'Longsword', 'Scimitar']
-const BASE_AXES = ['Handaxe', 'Battleaxe', 'Greataxe']
-const BASE_LIGHT_ARMOR = ['Padded', 'Leather', 'Studded Leather']
-const BASE_MEDIUM_ARMOR = ['Hide', 'Chain Shirt', 'Scale Mail', 'Breastplate', 'Half Plate']
-const BASE_HEAVY_ARMOR = ['Ring Mail', 'Chain Mail', 'Splint', 'Plate']
-const BASE_ARMOR = [...BASE_LIGHT_ARMOR, ...BASE_MEDIUM_ARMOR, ...BASE_HEAVY_ARMOR]
-const BASE_SHIELDS = ['Shield']
-const BASE_AMMUNITION = ['Arrow', 'Crossbow Bolt', 'Blowgun Needle', 'Sling Bullet']
-const BASE_NETS = ['Net']
+const PROPERTY_LABELS: Record<string, string> = {
+  '2H': 'Two-Handed',
+  A: 'Ammunition',
+  AF: 'Ammunition (Firearm)',
+  F: 'Finesse',
+  H: 'Heavy',
+  L: 'Light',
+  LD: 'Loading',
+  R: 'Reach',
+  RLD: 'Reload',
+  S: 'Special',
+  T: 'Thrown',
+  V: 'Versatile',
+  BF: 'Burst Fire',
+}
+
+const ARMOR_TYPES = new Set(['LA', 'MA', 'HA'])
 
 function rarityClass(rarity: string | null): string {
   switch (rarity) {
@@ -147,6 +155,12 @@ function rarityClass(rarity: string | null): string {
     case 'Unknown': return styles.rarityUnknown
     default: return styles.rarityNone
   }
+}
+
+function variantRarity(item: MagicItem): string {
+  const inherited = parseVariantDetails(item)?.inherits?.rarity
+  if (typeof inherited === 'string' && inherited) return inherited
+  return item.rarity ?? 'Unknown'
 }
 
 function attunementLabel(item: { requiresAttunement: boolean | null; attunement: string | null }): string {
@@ -175,8 +189,14 @@ function describeRequires(raw: string | null): string {
   if (obj.weapon) parts.push('weapons')
   if (obj.sword) parts.push('swords')
   if (obj.axe) parts.push('axes')
+  if (obj.bow) parts.push('bows')
+  if (obj.crossbow) parts.push('crossbows')
+  if (obj.spear) parts.push('spears')
+  if (obj.polearm) parts.push('polearms')
   if (obj.ammunition) parts.push('ammunition')
+  if (obj.weaponCategory) parts.push(`${obj.weaponCategory} weapons`)
   if (obj.name) parts.push(obj.name as string)
+  if (obj.names && Array.isArray(obj.names)) parts.push((obj.names as string[]).join(', '))
   if (obj.dmgType) parts.push(`${DMG_TYPE_LABELS[obj.dmgType as string] ?? (obj.dmgType as string)} damage`)
   if (parts.length === 0) return ''
   return `Applies to ${parts.join(', ')}`
@@ -219,12 +239,6 @@ function flattenEntries(entries: unknown[]): string[] {
   return out
 }
 
-function variantRarity(item: MagicItem): string {
-  const inherited = parseVariantDetails(item)?.inherits?.rarity
-  if (typeof inherited === 'string' && inherited) return inherited
-  return item.rarity ?? 'Unknown'
-}
-
 function variantDescription(item: MagicItem): string {
   if (item.description) return cleanText(item.description)
   const details = parseVariantDetails(item)
@@ -240,32 +254,76 @@ function variantDescription(item: MagicItem): string {
   return ''
 }
 
-function baseItemsForMember(member: MagicItem): string[] {
-  const requires = parseRequires(member.variantRequires)
-  if (!requires) return []
-  if (requires.type === 'S') return BASE_SHIELDS
-  if (requires.type === 'HA') return BASE_HEAVY_ARMOR
-  if (requires.type === 'MA') return BASE_MEDIUM_ARMOR
-  if (requires.name) {
-    const name = String(requires.name)
-    const match = BASE_NETS.find((n) => n.toLowerCase() === name.toLowerCase())
-    return match ? [match] : [name]
-  }
-  if (requires.armor) return BASE_ARMOR
-  if (requires.axe) return BASE_AXES
-  if (requires.sword && requires.dmgType === 'S') return BASE_SLASHING_SWORDS
-  if (requires.sword) return BASE_SWORDS
-  if (requires.weapon) return BASE_WEAPONS
-  if (requires.ammunition) return BASE_AMMUNITION
-  return []
+function baseItemFlags(base: BaseItem): Set<string> {
+  return new Set((base.flags ?? '').split(',').map((s) => s.trim()).filter(Boolean))
 }
 
-function applicableBaseItemsForGroup(group: VariantGroup): string[] {
-  const seen = new Set<string>()
-  for (const member of group.members) {
-    for (const name of baseItemsForMember(member)) seen.add(name)
+function baseItemMatches(base: BaseItem, requires: Record<string, unknown>): boolean {
+  for (const [key, value] of Object.entries(requires)) {
+    switch (key) {
+      case 'armor':
+        if (value && !ARMOR_TYPES.has(base.type ?? '')) return false
+        break
+      case 'type':
+        if (base.type !== value) return false
+        break
+      case 'name':
+        if (base.name !== value) return false
+        break
+      case 'names':
+        if (!Array.isArray(value) || !value.includes(base.name)) return false
+        break
+      case 'weapon':
+        if (value && !baseItemFlags(base).has('weapon')) return false
+        break
+      case 'sword':
+        if (value && !baseItemFlags(base).has('sword')) return false
+        break
+      case 'axe':
+        if (value && !baseItemFlags(base).has('axe')) return false
+        break
+      case 'bow':
+        if (value && !baseItemFlags(base).has('bow')) return false
+        break
+      case 'crossbow':
+        if (value && !baseItemFlags(base).has('crossbow')) return false
+        break
+      case 'spear':
+        if (value && !baseItemFlags(base).has('spear')) return false
+        break
+      case 'polearm':
+        if (value && !baseItemFlags(base).has('polearm')) return false
+        break
+      case 'ammunition':
+        if (value && base.type !== 'A' && base.type !== 'AF') return false
+        break
+      case 'weaponCategory':
+        if (base.weaponCategory !== value) return false
+        break
+      case 'dmgType':
+        if (base.dmgType !== value) return false
+        break
+      default:
+        return false
+    }
   }
-  return [...seen]
+  return true
+}
+
+function baseItemsForMember(member: MagicItem, baseItems: BaseItem[]): BaseItem[] {
+  const requires = parseRequires(member.variantRequires)
+  if (!requires) return []
+  return baseItems.filter((base) => baseItemMatches(base, requires))
+}
+
+function applicableBaseItemsForGroup(group: VariantGroup, baseItems: BaseItem[]): BaseItem[] {
+  const byName = new Map<string, BaseItem>()
+  for (const member of group.members) {
+    for (const base of baseItemsForMember(member, baseItems)) {
+      byName.set(base.name, base)
+    }
+  }
+  return [...byName.values()]
 }
 
 function concreteCardName(member: MagicItem, baseName: string): string {
@@ -293,17 +351,25 @@ function variantBonusLabel(member: MagicItem): string {
   return member.name
 }
 
-function classifyVariant(item: MagicItem): SectionKey {
+function namesAreArmor(names: string[], baseItems: BaseItem[]): boolean {
+  return names.every((n) => baseItems.some((b) => b.name === n && ARMOR_TYPES.has(b.type ?? '')))
+}
+
+function classifyVariant(item: MagicItem, baseItems: BaseItem[]): SectionKey {
   const requires = parseRequires(item.variantRequires)
   if (requires) {
     if (requires.armor || requires.type === 'HA' || requires.type === 'MA' || requires.type === 'LA') return 'armor'
     if (requires.ammunition) return 'ammunition'
-    if (requires.weapon || requires.sword || requires.axe || requires.name || requires.dmgType) return 'weapon'
+    if (requires.names && Array.isArray(requires.names) && namesAreArmor(requires.names as string[], baseItems)) return 'armor'
+    if (requires.weapon || requires.sword || requires.axe || requires.name || requires.dmgType ||
+        requires.bow || requires.crossbow || requires.spear || requires.polearm || requires.weaponCategory ||
+        requires.names) return 'weapon'
   }
   const name = item.name.toLowerCase()
   if (name.includes('armor')) return 'armor'
   if (name.includes('ammunition')) return 'ammunition'
-  if (name.includes('sword') || name.includes('axe') || name.includes('weapon')) return 'weapon'
+  if (name.includes('sword') || name.includes('axe') || name.includes('weapon') || name.includes('bow') ||
+      name.includes('crossbow') || name.includes('spear') || name.includes('polearm') || name.includes('lance')) return 'weapon'
   return 'other'
 }
 
@@ -330,7 +396,7 @@ function buildMergedEntry(groupKey: string, label: string, members: MagicItem[])
   }
 }
 
-function buildVariantSections(variants: MagicItem[]): VariantSection[] {
+function buildVariantSections(variants: MagicItem[], baseItems: BaseItem[]): VariantSection[] {
   const collected = new Map<SectionKey, Map<string, VariantGroup>>()
   const sectionFor = (key: SectionKey): Map<string, VariantGroup> => {
     let groups = collected.get(key)
@@ -353,7 +419,7 @@ function buildVariantSections(variants: MagicItem[]): VariantSection[] {
       }
     } else {
       const key = `single-${variant.id}`
-      const groups = sectionFor(classifyVariant(variant))
+      const groups = sectionFor(classifyVariant(variant, baseItems))
       groups.set(key, { key, label: variant.name, members: [variant], entry: buildSingleEntry(variant) })
     }
   }
@@ -391,15 +457,105 @@ function printCardFromItem(item: MagicItem): PrintSelection {
   }
 }
 
+function variantBonusNumber(member: MagicItem): number {
+  const details = parseVariantDetails(member)
+  const raw = details?.inherits?.genericBonus
+  if (typeof raw === 'string') {
+    const match = raw.match(/[+-]?\d+/)
+    if (match) return parseInt(match[0], 10)
+  }
+  return 0
+}
+
+function formatDamage(dmg: string | null, bonus: number, dmgType: string | null): string {
+  const die = dmg ?? '—'
+  const bonusStr = bonus !== 0 ? ` ${bonus > 0 ? '+' : ''}${bonus}` : ''
+  const typeStr = dmgType ? ` ${DMG_TYPE_LABELS[dmgType] ?? dmgType}` : ''
+  return `${die}${bonusStr}${typeStr}`.trim()
+}
+
+function buildConcreteStats(member: MagicItem, base: BaseItem): string[] {
+  const lines: string[] = []
+  const bonus = variantBonusNumber(member)
+  if (base.dmg1) lines.push(formatDamage(base.dmg1, bonus, base.dmgType))
+  if (base.dmg2 && base.property?.split(',').includes('V')) {
+    lines.push(`Versatile ${formatDamage(base.dmg2, bonus, base.dmgType)}`)
+  }
+  if (base.type === 'S' && base.ac != null) {
+    lines.push(`AC +${base.ac + bonus}`)
+  } else if (base.type && ARMOR_TYPES.has(base.type) && base.ac != null) {
+    lines.push(`AC ${base.ac + bonus}`)
+  }
+  if (base.stealth) lines.push('Stealth: Disadvantage')
+  if (base.strength) lines.push(`STR ${base.strength} required`)
+  if (base.range) lines.push(`Range ${base.range}`)
+  if (base.property) {
+    const props = base.property.split(',').map((p) => PROPERTY_LABELS[p] ?? p)
+    lines.push(props.join(', '))
+  }
+  if (base.weaponCategory) lines.push(capitalize(base.weaponCategory))
+  if (base.weight) lines.push(base.weight)
+  return lines
+}
+
+function buildBaseItemStats(base: BaseItem): string[] {
+  const lines: string[] = []
+  if (base.dmg1) lines.push(formatDamage(base.dmg1, 0, base.dmgType))
+  if (base.dmg2 && base.property?.split(',').includes('V')) {
+    lines.push(`Versatile ${formatDamage(base.dmg2, 0, base.dmgType)}`)
+  }
+  if (base.type === 'S' && base.ac != null) {
+    lines.push(`AC +${base.ac}`)
+  } else if (base.type && ARMOR_TYPES.has(base.type) && base.ac != null) {
+    lines.push(`AC ${base.ac}`)
+  }
+  if (base.stealth) lines.push('Stealth: Disadvantage')
+  if (base.strength) lines.push(`STR ${base.strength} required`)
+  if (base.range) lines.push(`Range ${base.range}`)
+  if (base.property) {
+    const props = base.property.split(',').map((p) => PROPERTY_LABELS[p] ?? p)
+    lines.push(props.join(', '))
+  }
+  if (base.weaponCategory) lines.push(capitalize(base.weaponCategory))
+  if (base.weight) lines.push(base.weight)
+  return lines
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+
+function typeLabel(type: string | null): string | null {
+  if (!type) return null
+  return TYPE_LABELS[type] ?? BASE_TYPE_LABELS[type] ?? type
+}
+
+function printCardFromBaseItem(base: BaseItem): PrintSelection {
+  return {
+    key: `base-${base.id}`,
+    name: base.name,
+    description: base.description ? cleanText(base.description) : '',
+    rarity: null,
+    type: base.type,
+    weight: base.weight,
+    requiresAttunement: null,
+    attunement: null,
+    stats: buildBaseItemStats(base),
+  }
+}
+
 export default function MagicItemsPage() {
   const [items, setItems] = useState<MagicItem[]>([])
   const [variants, setVariants] = useState<MagicItem[]>([])
+  const [baseItems, setBaseItems] = useState<BaseItem[]>([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<ToastState>(null)
 
   const [activeTab, setActiveTab] = useState<PageTab>('items')
   const [search, setSearch] = useState('')
   const [variantSearch, setVariantSearch] = useState('')
+  const [commonSearch, setCommonSearch] = useState('')
+  const [commonTypeFilter, setCommonTypeFilter] = useState('')
   const [rarityFilter, setRarityFilter] = useState('')
   const [typeFilter, setTypeFilter] = useState('')
   const [sourceFilter, setSourceFilter] = useState<SourceFilter>('all')
@@ -414,9 +570,10 @@ export default function MagicItemsPage() {
   const [editingItem, setEditingItem] = useState<MagicItem | null>(null)
 
   async function load() {
-    const [itemsResult, variantsResult] = await Promise.allSettled([
+    const [itemsResult, variantsResult, baseItemsResult] = await Promise.allSettled([
       fetchMagicItems(),
       fetchAllMagicItemVariants(),
+      fetchBaseItems(),
     ])
     if (itemsResult.status === 'fulfilled') {
       setItems(itemsResult.value)
@@ -427,6 +584,11 @@ export default function MagicItemsPage() {
       setVariants(variantsResult.value)
     } else {
       setToast({ message: 'Failed to load variant templates', type: 'error' })
+    }
+    if (baseItemsResult.status === 'fulfilled') {
+      setBaseItems(baseItemsResult.value)
+    } else {
+      setToast({ message: 'Failed to load base items', type: 'error' })
     }
   }
 
@@ -467,7 +629,7 @@ export default function MagicItemsPage() {
     })
   }, [items, search, rarityFilter, typeFilter, sourceFilter, sortBy, sortDir])
 
-  const sections = useMemo(() => buildVariantSections(variants), [variants])
+  const sections = useMemo(() => buildVariantSections(variants, baseItems), [variants, baseItems])
 
   const selectedVariantGroups = useMemo(
     () => sections.flatMap((section) => section.groups).filter((group) => !!selectedVariantKeys[group.entry.key]),
@@ -494,6 +656,24 @@ export default function MagicItemsPage() {
 
   const visibleGroupCount = visibleSections.reduce((n, s) => n + s.groups.length, 0)
 
+  const visibleBaseItems = useMemo(() => {
+    const q = commonSearch.trim().toLowerCase()
+    let list = baseItems
+    if (q) list = list.filter((b) => b.name.toLowerCase().includes(q) || b.type?.toLowerCase().includes(q))
+    if (commonTypeFilter) list = list.filter((b) => b.type === commonTypeFilter)
+    return [...list].sort((a, b) => a.name.localeCompare(b.name))
+  }, [baseItems, commonSearch, commonTypeFilter])
+
+  const baseTypeOptions = useMemo(() => {
+    const types = new Map<string, string>()
+    for (const b of baseItems) {
+      if (b.type && !types.has(b.type)) {
+        types.set(b.type, BASE_TYPE_LABELS[b.type] ?? b.type)
+      }
+    }
+    return [...types.entries()].sort((a, b) => a[1].localeCompare(b[1]))
+  }, [baseItems])
+
   function handleSort(col: SortBy) {
     if (col === sortBy) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
@@ -513,6 +693,19 @@ export default function MagicItemsPage() {
       prev.some((p) => p.key === key)
         ? prev.filter((p) => p.key !== key)
         : [...prev, printCardFromItem(item)],
+    )
+  }
+
+  function isBasePrintSelected(base: BaseItem): boolean {
+    return printSelection.some((p) => p.key === `base-${base.id}`)
+  }
+
+  function toggleBasePrint(base: BaseItem) {
+    const key = `base-${base.id}`
+    setPrintSelection((prev) =>
+      prev.some((p) => p.key === key)
+        ? prev.filter((p) => p.key !== key)
+        : [...prev, printCardFromBaseItem(base)],
     )
   }
 
@@ -537,9 +730,9 @@ export default function MagicItemsPage() {
     }
   }
 
-  function addConcreteCard(group: VariantGroup, member: MagicItem, baseName: string) {
-    const name = concreteCardName(member, baseName)
-    const key = `concrete-${group.key}-${member.id}-${baseName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+  function addConcreteCard(group: VariantGroup, member: MagicItem, base: BaseItem) {
+    const name = concreteCardName(member, base.name)
+    const key = `concrete-${group.key}-${member.id}-${base.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
     setPrintSelection((prev) =>
       prev.some((p) => p.key === key)
         ? prev
@@ -554,6 +747,7 @@ export default function MagicItemsPage() {
               weight: null,
               requiresAttunement: null,
               attunement: null,
+              stats: buildConcreteStats(member, base),
             },
           ],
     )
@@ -614,6 +808,12 @@ export default function MagicItemsPage() {
             onClick={() => setActiveTab('variants')}
           >
             Variants
+          </button>
+          <button
+            className={`${styles.tab} ${activeTab === 'common' ? styles.tabActive : ''}`}
+            onClick={() => setActiveTab('common')}
+          >
+            Common
           </button>
         </div>
       </div>
@@ -723,7 +923,7 @@ export default function MagicItemsPage() {
                 )}
               </div>
             </>
-          ) : (
+          ) : activeTab === 'variants' ? (
             <>
               <div className={styles.filters}>
                 <input
@@ -781,6 +981,67 @@ export default function MagicItemsPage() {
                 )}
               </div>
             </>
+          ) : (
+            <>
+              <div className={styles.filters}>
+                <input
+                  className={styles.search}
+                  type="search"
+                  placeholder="Search base items..."
+                  value={commonSearch}
+                  onChange={(e) => setCommonSearch(e.target.value)}
+                  aria-label="Search base items"
+                />
+                <select
+                  value={commonTypeFilter}
+                  onChange={(e) => setCommonTypeFilter(e.target.value)}
+                  aria-label="Filter base items by type"
+                >
+                  <option value="">All Types</option>
+                  {baseTypeOptions.map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <p className={styles.count}>
+                {visibleBaseItems.length} base item{visibleBaseItems.length === 1 ? '' : 's'}
+              </p>
+
+              <div className={styles.table}>
+                <div className={styles.tableHeader}>
+                  <span className={styles.colCheck} />
+                  <span className={styles.colName}>Name</span>
+                  <span className={styles.colType}>Type</span>
+                </div>
+
+                {visibleBaseItems.length === 0 ? (
+                  <p className={styles.emptyState}>No base items match your filters.</p>
+                ) : (
+                  visibleBaseItems.map((base) => (
+                    <div key={`base-${base.id}`} className={styles.itemRow}>
+                      <span className={styles.colCheck}>
+                        <input
+                          type="checkbox"
+                          aria-label={`Select ${base.name} for printing`}
+                          checked={isBasePrintSelected(base)}
+                          onChange={() => toggleBasePrint(base)}
+                        />
+                      </span>
+                      <span className={styles.colName} title={base.name}>
+                        <span className={styles.baseItemName}>{base.name}</span>
+                        <span className={styles.baseItemStats}>{buildBaseItemStats(base).join(' · ')}</span>
+                      </span>
+                      <span className={styles.colType}>
+                        {base.type && (
+                          <span className={styles.typeBadge}>{BASE_TYPE_LABELS[base.type] ?? base.type}</span>
+                        )}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </>
           )}
         </div>
 
@@ -803,7 +1064,7 @@ export default function MagicItemsPage() {
                 const members = group.members
                 const choiceId = variantBonusChoice[group.key] ?? members[0].id
                 const chosen = members.find((m) => m.id === choiceId) ?? members[0]
-                const baseItems = applicableBaseItemsForGroup(group)
+                const applicableBaseItems = applicableBaseItemsForGroup(group, baseItems)
                 return (
                   <div key={group.key} className={styles.builderGroup}>
                     <div className={styles.builderTitle}>{group.entry.name}</div>
@@ -826,17 +1087,17 @@ export default function MagicItemsPage() {
                         </select>
                       </label>
                     )}
-                    {baseItems.length === 0 ? (
+                    {applicableBaseItems.length === 0 ? (
                       <p className={styles.builderEmpty}>No base item options available.</p>
                     ) : (
                       <div className={styles.builderButtons}>
-                        {baseItems.map((base) => (
+                        {applicableBaseItems.map((base) => (
                           <button
-                            key={base}
+                            key={base.name}
                             className={styles.builderButton}
                             onClick={() => addConcreteCard(group, chosen, base)}
                           >
-                            {concreteCardName(chosen, base)}
+                            {concreteCardName(chosen, base.name)}
                           </button>
                         ))}
                       </div>
@@ -867,9 +1128,14 @@ export default function MagicItemsPage() {
                       {sel.rarity ?? 'None'}
                     </span>
                     {sel.type && (
-                      <span className={styles.typeBadge}>{TYPE_LABELS[sel.type] ?? sel.type}</span>
+                      <span className={styles.typeBadge}>{typeLabel(sel.type)}</span>
                     )}
                   </div>
+                  {sel.stats && sel.stats.length > 0 && (
+                    <div className={styles.selectedCardStats}>
+                      {sel.stats.map((line) => <div key={line}>{line}</div>)}
+                    </div>
+                  )}
                   {sel.description && <div className={styles.selectedCardBody}>{sel.description}</div>}
                   {sel.appliesTo && <div className={styles.selectedCardApplies}>{sel.appliesTo}</div>}
                   <div className={styles.selectedCardFooter}>
@@ -882,9 +1148,9 @@ export default function MagicItemsPage() {
           )}
 
           <p className={styles.hint}>
-            {activeTab === 'items'
-              ? 'Click a row to see item details.'
-              : 'Select a variant, then click a base item to build and print its card.'}
+            {activeTab === 'items' && 'Click a row to see item details.'}
+            {activeTab === 'variants' && 'Select a variant, then click a base item to build and print its card.'}
+            {activeTab === 'common' && 'Select base items to build and print their cards.'}
           </p>
         </div>
       </div>
@@ -924,10 +1190,15 @@ export default function MagicItemsPage() {
                     {sel.rarity ?? 'None'}
                   </span>
                   {sel.type && (
-                    <span className={styles.typeBadge}>{TYPE_LABELS[sel.type] ?? sel.type}</span>
+                    <span className={styles.typeBadge}>{typeLabel(sel.type)}</span>
                   )}
                 </div>
               </div>
+              {sel.stats && sel.stats.length > 0 && (
+                <div className={styles.printStats}>
+                  {sel.stats.map((line) => <div key={line}>{line}</div>)}
+                </div>
+              )}
               {sel.description && <div className={styles.printBody}>{sel.description}</div>}
               {sel.appliesTo && <div className={styles.printApplies}>{sel.appliesTo}</div>}
               <div className={styles.printFooter}>

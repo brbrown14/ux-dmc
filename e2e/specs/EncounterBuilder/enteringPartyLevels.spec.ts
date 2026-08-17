@@ -13,6 +13,15 @@ test.describe('enteringPartyLevels', () => {
     }
     await expect(encounter.levelInputs).toHaveCount(10)
 
+    // Add a monster so the difficulty reflects party levels
+    await encounter.searchInput.fill('AboLEth')
+    const monsterRow = page.locator('[class*="monsterRow"]')
+    await expect(monsterRow.filter({ hasText: 'Aboleth' }).first()).toBeVisible()
+    await monsterRow.filter({ hasText: 'Aboleth' }).locator('[class*="addBtn"]').first().click()
+    await expect(page.locator('[class*="diffSegment"]')).toHaveText(/Easy|Medium|Hard|Deadly/)
+    // Only the current difficulty level is shown
+    expect(await page.locator('[class*="diffSegment"]').count()).toBe(1)
+
     // First 5: type "20" directly
     for (let i = 0; i < 5; i++) {
       const before = await encounter.getDifficultySignature()

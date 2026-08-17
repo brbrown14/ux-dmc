@@ -1,5 +1,5 @@
 import { get, post, put, del } from './client'
-import type { MagicItem } from './types'
+import type { BaseItem, MagicItem } from './types'
 
 export interface MagicItemQuery {
   q?: string
@@ -43,6 +43,10 @@ export function fetchMagicItemVariants(id: number): Promise<MagicItem[]> {
 
 export function fetchAllMagicItemVariants(): Promise<MagicItem[]> {
   return get<MagicItem[]>('/api/magic-items/variants')
+}
+
+export function fetchBaseItems(): Promise<BaseItem[]> {
+  return get<BaseItem[]>('/api/magic-items/base-items')
 }
 
 export function createMagicItem(item: MagicItemInput): Promise<MagicItem> {

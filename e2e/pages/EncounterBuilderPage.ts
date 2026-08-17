@@ -26,7 +26,7 @@ export class EncounterBuilderPage {
   }
 
   async getDifficultySignature(): Promise<string> {
-    const el = this.page.getByText(`Easy \u2264`)
+    const el = this.page.locator('[class*="diffSegment"]')
     return (await el.textContent()) ?? ''
   }
 

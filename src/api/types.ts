@@ -114,3 +114,25 @@ export interface MagicItem {
   custom: boolean
   ownerUsername: string | null
 }
+
+export interface BaseItem {
+  id: number
+  name: string
+  description: string
+  source: string | null
+  page: number | null
+  type: string | null
+  weight: string | null
+  value: string | null
+  weaponCategory: string | null
+  property: string | null
+  range: string | null
+  dmg1: string | null
+  dmg2: string | null
+  dmgType: string | null
+  ac: number | null
+  stealth: boolean | null
+  strength: string | null
+  flags: string | null
+  detailsJson: string | null
+}
